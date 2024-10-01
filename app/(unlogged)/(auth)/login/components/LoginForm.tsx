@@ -5,8 +5,7 @@ import { Button, Input, Label, Separator } from '@/components/ui/';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Link from 'next/link';
-import backendConector from '@/config/backendConector';
-import { access } from 'fs';
+import api from '@/config/api';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('Email no válido').required('Email es obligatorio'),
@@ -26,7 +25,7 @@ export default function LoginForm() {
                     setError('');
                     setLoading(true);
                     try {
-                        const res = await backendConector.post('/auth/login', values);
+                        const res = await api.post('/auth/login', values);
                         localStorage.setItem('access_token', res.data.access_token);
                         window.location.href = '/dashboard';
                     } catch (error) {

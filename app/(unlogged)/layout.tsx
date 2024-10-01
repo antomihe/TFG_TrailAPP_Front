@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { NavigationMenu, NavigationMenuList, NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { ModeToggle } from "@/components/ui/theme/themeIcon";
-import LogoIcon from "@/app/(auth)/components/LogoIcon";
-import YearComponent from "./components/YearComponent";
+import LogoIcon from "@/app/(unlogged)/components/LogoIcon";
+import YearComponent from "@/app/(unlogged)/components/YearComponent";
 
 export default function NavigationMenuContainer({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
@@ -72,8 +72,12 @@ export default function NavigationMenuContainer({ children }: { children: React.
             )}
             <div className="ml-auto flex gap-2">
               <ModeToggle />
-              <Button variant="outline">Iniciar sesión</Button>
-              <Button>Registrarse</Button>
+              <Link href="/login" passHref>
+                <Button variant="outline">Iniciar sesión</Button>
+              </Link>
+              <Link href="/register" passHref>
+                <Button>Registrarse</Button>
+              </Link>
             </div>
           </header>
           <main className="flex-grow">{children}</main>
