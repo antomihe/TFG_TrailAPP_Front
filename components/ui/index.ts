@@ -1,3 +1,4 @@
+export * from './background-lines';
 export * from './button';
 export * from './calendar';
 export * from './card';

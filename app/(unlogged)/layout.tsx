@@ -21,7 +21,6 @@ export default function NavigationMenuContainer({ children }: { children: React.
       {isClient && (
         <div className="container h-screen mx-auto flex flex-col px-4 md:px-6 lg:px-8">
           <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6">
-
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="lg:hidden">
@@ -46,23 +45,24 @@ export default function NavigationMenuContainer({ children }: { children: React.
             <Link href="/" className="mr-6 hidden lg:flex items-center" prefetch={false}>
               <LogoIcon className="h-6 w-6" />
             </Link>
+
             {isClient && (
               <NavigationMenu className="hidden lg:flex">
                 <NavigationMenuList>
-                  <NavigationMenuLink asChild>
+                    <NavigationMenuLink asChild>
                     <Link
                       href="/"
-                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
+                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100  dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50"
                       prefetch={false}
                     >
                       Home
                     </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
+                    </NavigationMenuLink>
+                    <NavigationMenuLink asChild>
                     <Link
                       href="#"
-                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
-                      prefetch={false}
+                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+                      prefetch={true}
                     >
                       Eventos
                     </Link>
@@ -70,17 +70,22 @@ export default function NavigationMenuContainer({ children }: { children: React.
                 </NavigationMenuList>
               </NavigationMenu>
             )}
+
             <div className="ml-auto flex gap-2">
               <ModeToggle />
-              <Link href="/login" passHref>
+              <Link href="/login" passHref prefetch={true}>
                 <Button variant="outline">Iniciar sesión</Button>
               </Link>
-              <Link href="/register" passHref>
+              <Link href="/register" passHref prefetch={true}>
                 <Button>Registrarse</Button>
               </Link>
             </div>
           </header>
-          <main className="flex-grow">{children}</main>
+
+          <main className="flex-grow min-h-[calc(100vh-160px)] flex flex-col">
+            {children}
+          </main>
+
           <footer className="flex h-20 w-full shrink-0 items-center justify-center px-4 md:px-6">
             <p className="text-sm font-semibold">© <YearComponent /> - TRAILAPP</p>
           </footer>
