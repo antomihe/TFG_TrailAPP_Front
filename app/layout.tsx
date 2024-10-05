@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { inter } from '@/config/fonts';
-import { ThemeProvider } from "@/components/ui/theme/theme-provider"
-import { useTheme } from 'next-themes';
-import Image from 'next/image';
+import { ThemeProvider } from "@/components/theme/theme-provider"
 
 import './globals.css';
 

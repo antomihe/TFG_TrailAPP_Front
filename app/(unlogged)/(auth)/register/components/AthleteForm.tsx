@@ -6,6 +6,8 @@ import { Button } from '@/components/ui';
 
 import { Formik, Form } from 'formik';
 
+import api from '@/config/api';
+
 import * as Yup from 'yup';
 
 const schema = Yup.object().shape({
@@ -67,6 +69,8 @@ const schema = Yup.object().shape({
 export default function AthleteForm() {
 
     const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState<string>('');
+    const [submited, setSubmited] = React.useState<string>('');
 
 
     return (
@@ -79,8 +83,22 @@ export default function AthleteForm() {
                     dateOfBirth: ''
                 }}
                 validationSchema={schema}
-                onSubmit={(values) => {
-                    console.log(values);
+                onSubmit={async (values) => {
+                    setError('');
+                    setSubmited('');
+                    setLoading(true);
+                    try {
+                        setLoading(true);
+                        const res = await api.post('/users/athlete', values);
+                        setLoading(false);
+                        setSubmited('¡Exito! Compruebe su correo electrónico para confirmar su cuenta');
+                    } catch (error) {
+                        const errorMessage = (error as any)?.response?.data?.message;
+                        if (errorMessage) setError(errorMessage);
+                        else setError('Error desconocido');
+                    } finally {
+                        setLoading(false);
+                    }
                 }}
             >
                 {
@@ -141,14 +159,20 @@ export default function AthleteForm() {
                                     )}
                                 </div>
                             </div>
+
+                            {error && (
+                                <p className="text-red-500 text-sm mt-4">{error}</p>
+                            )}
+                            <Button type="submit" className="w-full mt-6" disabled={loading}>
+                                {loading ? 'Cargando...' : 'Registrarse'}
+                            </Button>
+                            {submited && (
+                                <p className="text-green-600 text-sm mt-2">{submited}</p>
+                            )}
                         </Form>
-
-
                     )}
             </Formik>
-            <Button type="submit" className="w-full mt-6" disabled={loading}>
-                {loading ? 'Cargando...' : 'Registrarse'}
-            </Button>
+
 
         </>
     )
