@@ -10,7 +10,7 @@ function usePublicRedirect(): boolean {
     const [shouldRedirect, setShouldRedirect] = useState(false);
     
     useEffect(() => {
-        if (userState.isNull()) {
+        if (!userState.isNull()) {
             router.push('/dashboard');
             setShouldRedirect(true);
         }

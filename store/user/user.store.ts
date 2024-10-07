@@ -2,13 +2,25 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 
+enum RolesEnum {
+    NATIONALFEDERATION = "NationalFederation",
+    FEDERATION = "Federation",
+    ORGANIZER = "Organizer",
+    ATHLETE = "Athlete",
+    OFFICIAL = "Official",
+    NULL = 'null',
+}
+
+const initialState = {
+    access_token: '',
+    id: '',
+    username: '',
+    role: RolesEnum.NULL,
+    email: ''
+}
+
 interface State {
-    user: {
-        id: string;
-        username: string;
-        role: RolesEnum;
-        email: string;
-    }
+    user: typeof initialState;
 
     login: (user: State['user']) => void;
     logout: () => void;
@@ -18,20 +30,15 @@ interface State {
 export const useUserState = create<State>()(
     persist(
         (set, get) => ({
-            user: {
-                id: '',
-                username: '',
-                role: RolesEnum.NULL,
-                email: ''
-            },
+            user: initialState,
             login: (user: State['user']) => {
                 set({ user: user })
             },
             logout: () => {
-                set({ user: { id: '', username: '', role: RolesEnum.NULL, email: '' } })
+                set({ user: initialState })
             },
             isNull: () => {
-                return get().user.role !== RolesEnum.NULL;
+                return get().user.role === RolesEnum.NULL || !get().user.access_token;
             }
         }),
         {
@@ -40,11 +47,4 @@ export const useUserState = create<State>()(
     )
 )
 
-export enum RolesEnum {
-    NATIONALFEDERATION = "NationalFederation",
-    FEDERATION = "Federation",
-    ORGANIZER = "Organizer",
-    ATHLETE = "Athlete",
-    OFFICIAL = "Official",
-    NULL = 'null',
-}
+

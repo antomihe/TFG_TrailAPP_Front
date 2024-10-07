@@ -5,10 +5,13 @@ import { AuthRedirect } from '@/components/auth/AuthRedirect';
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
     const AuthWrapper = AuthRedirect(({ children }: { children: ReactNode }) => {
-        return <>{children}</>; 
+        return <>{children}</>;
     });
-    
-    return <AuthWrapper>{children}</AuthWrapper>;
+
+    return (
+        <AuthWrapper>
+            {children}
+        </AuthWrapper>);
 };
 
 export default AuthLayout;

@@ -6,6 +6,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('Email no válido').required('Email es obligatorio'),
@@ -15,6 +16,8 @@ const schema = Yup.object().shape({
 export default function LoginForm() {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string>('');
+    const router = useRouter();
+    const params = useSearchParams()
 
     return (
         <>
@@ -27,7 +30,8 @@ export default function LoginForm() {
                     try {
                         const res = await api.post('/auth/login', values);
                         useUserState.getState().login(res.data);
-                        window.location.href = '/dashboard';
+                        const to = params.get('to') || '/dashboard';
+                        router.push(to);
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         if (errorMessage) setError(errorMessage);

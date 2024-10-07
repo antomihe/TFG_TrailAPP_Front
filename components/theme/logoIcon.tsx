@@ -3,11 +3,15 @@
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
-function LogoIcon(props: any) {
+interface LogoIconProps {
+    className?: string; 
+}
+
+const LogoIcon: React.FC<LogoIconProps> = ({ className }) => {
     const { theme } = useTheme();
-  
+
     return (
-      <>
+      <div className={className}>
         {theme === "dark" ? (
           <Image
             src="/logo_blanco.png"
@@ -23,11 +27,8 @@ function LogoIcon(props: any) {
             height={32}
           />
         )}
-        <h1 className="hidden lg:flex scroll-m-20 text-l ml-2 font-extrabold tracking-tight lg:text-xl">
-          TrailApp
-        </h1>
-      </>
-    )
-  }
+      </div>
+    );
+}
 
-  export default LogoIcon;
+export { LogoIcon };

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import EmailForm from "./components/EmailForm"
 
 export default function PasswordPage({ params }: { params: { token: string } }) {
- 
+
   return (
     <Card className="w-full max-w-md mx-auto ">
       <CardHeader>
@@ -10,10 +10,7 @@ export default function PasswordPage({ params }: { params: { token: string } }) 
         <CardDescription>Enviaremos un link a tu email para restaurar la contraseña</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mt-6">
-          <EmailForm />
-        </div>
-
+        <EmailForm />
       </CardContent>
       <CardFooter>
 

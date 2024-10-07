@@ -11,10 +11,7 @@ export default function LoginFormPage() {
         <CardDescription>Introduce tus credenciales de acceso</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mt-6">
-          <LoginForm />
-        </div>
-
+        <LoginForm />
       </CardContent>
       <CardFooter className="flex flex-col items-center">
         <Separator className="mt-3 w-full" />

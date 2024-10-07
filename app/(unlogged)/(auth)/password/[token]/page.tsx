@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useRouter } from 'next/router'
 
 export default function PasswordPage({ params }: { params: { token: string } }) {
- 
+
   return (
     <Card className="w-full max-w-md mx-auto ">
       <CardHeader>
@@ -11,12 +11,9 @@ export default function PasswordPage({ params }: { params: { token: string } }) 
         <CardDescription>Asocia una contraseña a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mt-6">
-          <PasswordForm 
-            token={params.token}
-          />
-        </div>
-
+        <PasswordForm
+          token={params.token}
+        />
       </CardContent>
       <CardFooter>
 
