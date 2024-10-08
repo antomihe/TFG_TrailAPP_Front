@@ -6,6 +6,7 @@ import { useUserState } from "@/store/user/user.store";
 
 import AthelteProfileForm from './components/AthelteProfileForm';
 import OfficialProfileForm from './components/OfficialProfileForm';
+import FederationProfileForm from './components/FederationProfileForm';
 
 export default function ProfilePage() {
   const user = useUserState.getState().user;
@@ -20,7 +21,7 @@ export default function ProfilePage() {
 
       
       {user.role === "NationalFederation" && <AthelteProfileForm/>}
-      {user.role === "Federation" && <AthelteProfileForm/>}
+      {user.role === "Federation" && <FederationProfileForm/>}
       {user.role === "Athlete" && <AthelteProfileForm/>}
       {user.role === "Official" && <OfficialProfileForm/>}
       {user.role === "Organizer" && <AthelteProfileForm/>}
