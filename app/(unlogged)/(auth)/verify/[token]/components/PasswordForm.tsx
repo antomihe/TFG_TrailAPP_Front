@@ -23,7 +23,7 @@ export default function PasswordForm({ token }: { token: string }) {
                     setError('');
                     setLoading(true);
                     try {
-                        const res = await api.patch(`/auth/recover/${token}`, values);
+                        const res = await api().patch(`/auth/recover/${token}`, values);
                         window.location.href = '/login';
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;

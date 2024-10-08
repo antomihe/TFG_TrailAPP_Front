@@ -32,7 +32,7 @@ export default function OfficialForm() {
         const fetchFederations = async () => {
             setLoading(true);
             try {
-                const loadFederations = await api.get('users/federation');
+                const loadFederations = await api().get('users/federation');
                 setFederations(loadFederations.data);
             } catch (error) {
                 setFederationsError('Error al cargar las federaciones');
@@ -59,7 +59,7 @@ export default function OfficialForm() {
                     setLoading(true);
                     try {
                         setLoading(true);
-                        const res = await api.post('/users/official', values);
+                        const res = await api().post('/users/official', values);
                         setLoading(false);
                         setSubmited('¡Exito! Compruebe su correo electrónico para confirmar su cuenta');
                     } catch (error) {

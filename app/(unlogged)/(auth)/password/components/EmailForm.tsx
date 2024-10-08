@@ -26,7 +26,7 @@ export default function EmailForm() {
                     setSuccess('');
                     setLoading(true);
                     try {
-                        const res = await api.post(`/auth/recover`, values);
+                        const res = await api().post(`/auth/recover`, values);
                         setSuccess('Se ha enviado un email con las instrucciones para restaurar la contraseña');
                     } catch (error) {
                         setSuccess('');

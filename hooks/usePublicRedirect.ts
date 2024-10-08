@@ -1,22 +1,22 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';  
 import { useUserState } from '@/store/user/user.store';
 
-function usePublicRedirect(): boolean {
+function usePublicRedirect(): { shouldRedirect: boolean; loading: boolean } {
     const router = useRouter();  
     const userState = useUserState();
     const [shouldRedirect, setShouldRedirect] = useState(false);
+    const [loading, setLoading] = useState(true)
     
     useEffect(() => {
         if (!userState.isNull()) {
-            router.push('/dashboard');
             setShouldRedirect(true);
+            router.push('/dashboard');
         }
-    }, [userState, router]);
+        setLoading(false);
+    }, [userState]);
 
-    return shouldRedirect;  
+    return {shouldRedirect , loading};
 }
 
 export default usePublicRedirect;

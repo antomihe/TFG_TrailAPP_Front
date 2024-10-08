@@ -28,7 +28,7 @@ export default function LoginForm() {
                     setError('');
                     setLoading(true);
                     try {
-                        const res = await api.post('/auth/login', values);
+                        const res = await api().post('/auth/login', values);
                         useUserState.getState().login(res.data);
                         const to = params.get('to') || '/dashboard';
                         router.push(to);

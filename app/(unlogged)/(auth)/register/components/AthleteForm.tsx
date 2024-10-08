@@ -89,7 +89,7 @@ export default function AthleteForm() {
                     setLoading(true);
                     try {
                         setLoading(true);
-                        const res = await api.post('/users/athlete', values);
+                        const res = await api().post('/users/athlete', values);
                         setLoading(false);
                         setSubmited('¡Exito! Compruebe su correo electrónico para confirmar su cuenta');
                     } catch (error) {
