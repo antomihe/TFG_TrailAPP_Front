@@ -72,7 +72,7 @@ export default function AthelteProfileForm() {
                 userData.dateOfBirth = formatDate(userData.dateOfBirth);
                 setUser(userData);
             } catch (error) {
-                console.error(error);
+                setError('Error al cargar los datos');
             } finally {
                 setLoading(false);
             }
@@ -120,7 +120,7 @@ export default function AthelteProfileForm() {
                                 <Label htmlFor="fullName">Nombre completo</Label>
                                 <Input
                                     id="fullName"
-                                    placeholder="Eduardo Pérez"
+                                    placeholder="Cargando..."
                                     value={formik.values.fullName}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
@@ -133,7 +133,7 @@ export default function AthelteProfileForm() {
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
-                                    placeholder="eduardo@gmail.com"
+                                    placeholder="Cargando..."
                                     value={formik.values.email}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
@@ -147,7 +147,7 @@ export default function AthelteProfileForm() {
                                     <Label htmlFor="idNumber">DNI - NIE</Label>
                                     <Input
                                         id="idNumber"
-                                        placeholder="79883941L"
+                                        placeholder="Cargando..."
                                         value={formik.values.idNumber}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
@@ -160,7 +160,7 @@ export default function AthelteProfileForm() {
                                     <Label htmlFor="dateOfBirth">Fecha de nacimiento</Label>
                                     <Input
                                         id="dateOfBirth"
-                                        placeholder="01/02/1992"
+                                        placeholder="Cargando..."
                                         value={formik.values.dateOfBirth}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}

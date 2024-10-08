@@ -108,12 +108,12 @@ const mainLinks = [
   },
   {
     label: "Perfil",
-    href: "dashboard/profile",
+    href: "/dashboard/profile",
     icon: <IconUserBolt className="h-5 w-5 flex-shrink-0" />,
   },
   {
     label: "Chat",
-    href: "dashboard/chat",
+    href: "#",
     icon: <IconMessages className="h-5 w-5 flex-shrink-0" />,
   },
 ];

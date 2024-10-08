@@ -10,7 +10,6 @@ import { useUserState } from '@/store/user/user.store';
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
     fullName: Yup.string().required('El nombre completo es obligatorio'),
-
 });
 
 const SkeletonLoader = () => (
@@ -23,22 +22,22 @@ const SkeletonLoader = () => (
     </div>
 );
 
-export default function OfficialProfileForm() {
+export default function OrganizerProfileForm() {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
     const [user, setUser] = React.useState<any | null>(null);
-    const [license, setLicense] = React.useState<string>('Cargando...');
     const [federationName, setFederationName] = React.useState<string>('Cargando...');
+
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 setLoading(true);
-                const res = await api(userState.access_token).get(`users/official/id/${userState.id}`);
+                const res = await api(userState.access_token).get(`users/organizer/id/${userState.id}`);
                 const userData = res.data;
-                setLicense(userData.license);
+
                 const resFed = await api(userState.access_token).get(`users/federation/${userData.federationCode}`)
                 setFederationName(resFed.data.displayName);
                 setUser(userData);
@@ -50,7 +49,7 @@ export default function OfficialProfileForm() {
         };
 
         fetchUser();
-    }, []);
+    }, [userState.access_token, userState.id]);
 
     if (loading) {
         return <SkeletonLoader />;
@@ -61,9 +60,7 @@ export default function OfficialProfileForm() {
             <Formik
                 initialValues={{
                     email: user?.email as string || '',
-                    fullName: user?.displayName as string || '',
-                    federationCode: user?.federationCode as string || '',
-                    license: user?.license as string || ''
+                    name: user?.displayName as string || '',
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
@@ -71,8 +68,7 @@ export default function OfficialProfileForm() {
                     setSubmited('');
                     setLoading(true);
                     try {
-                        const res = await api(userState.access_token).patch(`/users/official/${userState.id}`, values);
-                        setLoading(false);
+                        const res = await api(userState.access_token).patch(`/users/organizer/${userState.id}`, values);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
@@ -87,19 +83,6 @@ export default function OfficialProfileForm() {
                     <Form>
                         <div className="space-y-2">
                             <div className="space-y-1">
-                                <Label htmlFor="fullName">Nombre completo</Label>
-                                <Input
-                                    id="fullName"
-                                    placeholder="Cargando..."
-                                    value={formik.values.fullName}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.fullName && formik.errors.fullName && (
-                                    <p className="text-red-500 text-sm">{formik.errors.fullName}</p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
@@ -111,22 +94,23 @@ export default function OfficialProfileForm() {
                                 {formik.touched.email && formik.errors.email && (
                                     <p className="text-red-500 text-sm">{formik.errors.email}</p>
                                 )}
+                                <Label htmlFor="name">Nombre</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="Cargando..."
+                                    value={formik.values.name}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                />
+                                {formik.touched.name && formik.errors.name && (
+                                    <p className="text-red-500 text-sm">{formik.errors.name}</p>
+                                )}
                             </div>
                             <div className="flex space-x-4">
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="license">Licencia</Label>
-                                    <Input
-                                        id="license"
-                                        placeholder="Cargando..."
-                                        value={license}
-                                        disabled
-                                    />
-                                </div>
                                 <div className="flex-1 space-y-1">
                                     <Label htmlFor="federationName">Federación autonómica</Label>
                                     <Input
                                         id="federationName"
-                                        placeholder="Cargando..."
                                         value={federationName}
                                         disabled
                                     />

@@ -28,8 +28,8 @@ export default function FederationProfileForm() {
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
     const [user, setUser] = React.useState<any | null>(null);
-    const [region, setRegion] = React.useState<string>('loading...');
-    const [federationCode, setFederationCode] = React.useState<string>('loading...');
+    const [region, setRegion] = React.useState<string>('Cargando...');
+    const [federationCode, setFederationCode] = React.useState<string>('Cargando...');
 
 
     useEffect(() => {
