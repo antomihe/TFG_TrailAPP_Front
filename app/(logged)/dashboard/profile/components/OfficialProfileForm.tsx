@@ -10,35 +10,7 @@ import { useUserState } from '@/store/user/user.store';
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
     fullName: Yup.string().required('El nombre completo es obligatorio'),
-    idNumber: Yup.string()
-        .required('El documento de identificación es obligatorio')
-        .matches(/^[XYZ]?\d{5,8}[A-Z]$/, 'El documento de identificación debe ser un DNI o NIE válido')
-        .test('idNumber', 'DNI o NIE no válido', value => {
-            if (!value) return false;
-            const dniLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-            const number = parseInt((value?.slice(0, -1) ?? '').replace(/[XYZ]/, match => ({ X: '0', Y: '1', Z: '2' }[match])!), 10);
-            const letter = value.slice(-1);
-            return dniLetters[number % 23] === letter;
-        }),
-    dateOfBirth: Yup.string()
-        .required('La fecha de nacimiento es obligatoria')
-        .matches(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d\d$/, 'La fecha de nacimiento no es válida (dd/mm/yyyy)')
-        .test('dateOfBirth', 'La fecha de nacimiento debe ser después del 01/01/1900', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const date = new Date(year, month - 1, day);
-            return date >= new Date(1900, 0, 1);
-        })
-        .test('dateOfBirth', 'La fecha de nacimiento no puede ser en el futuro', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const date = new Date(year, month - 1, day);
-            return date <= new Date();
-        })
-        .test('dateOfBirth', 'La fecha de nacimiento no es válida', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-            const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            return day <= daysInMonth[month - 1];
-        })
+    
 });
 
 const SkeletonLoader = () => (
@@ -51,7 +23,7 @@ const SkeletonLoader = () => (
     </div>
 );
 
-export default function AthelteProfileForm() {
+export default function OfficialProfileForm() {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
@@ -67,9 +39,11 @@ export default function AthelteProfileForm() {
         const fetchUser = async () => {
             try {
                 setLoading(true);
-                const res = await api(userState.access_token).get(`users/athlete/id/${userState.id}`);
+                const res = await api(userState.access_token).get(`users/official/id/${userState.id}`);
                 const userData = res.data;
-                userData.dateOfBirth = formatDate(userData.dateOfBirth);
+                const resFed = await api(userState.access_token).get(`users/federation/${userData.federationCode}`)
+                const { displayName: federationName} = resFed.data
+                userData.federationCode = federationName
                 setUser(userData);
             } catch (error) {
                 console.error(error);
@@ -91,8 +65,8 @@ export default function AthelteProfileForm() {
                 initialValues={{
                     email: user?.email as string || '',
                     fullName: user?.displayName as string || '',
-                    idNumber: user?.idNumber as string || '',
-                    dateOfBirth: user?.dateOfBirth as string || ''
+                    federationCode: user?.federationCode as string || '',
+                    license: user?.license as string || ''
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
@@ -101,7 +75,7 @@ export default function AthelteProfileForm() {
                     setLoading(true);
                     try {
                         console.log('accesToken', userState.access_token);
-                        const res = await api(userState.access_token).patch(`/users/athlete/${userState.id}`, values);
+                        const res = await api(userState.access_token).patch(`/users/official/${userState.id}`, values);
                         setLoading(false);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
                     } catch (error) {
@@ -144,29 +118,31 @@ export default function AthelteProfileForm() {
                             </div>
                             <div className="flex space-x-4">
                                 <div className="flex-1 space-y-1">
-                                    <Label htmlFor="idNumber">DNI - NIE</Label>
+                                    <Label htmlFor="license">Licencia</Label>
                                     <Input
-                                        id="idNumber"
-                                        placeholder="79883941L"
-                                        value={formik.values.idNumber}
+                                        id="license"
+                                        placeholder="M209"
+                                        value={formik.values.license}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
+                                        disabled
                                     />
-                                    {formik.touched.idNumber && formik.errors.idNumber && (
-                                        <p className="text-red-500 text-sm">{formik.errors.idNumber}</p>
+                                    {formik.touched.license && formik.errors.license && (
+                                        <p className="text-red-500 text-sm">{formik.errors.license}</p>
                                     )}
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                    <Label htmlFor="dateOfBirth">Fecha de nacimiento</Label>
+                                    <Label htmlFor="federationCode">Federación autonómica</Label>
                                     <Input
-                                        id="dateOfBirth"
-                                        placeholder="01/02/1992"
-                                        value={formik.values.dateOfBirth}
+                                        id="federationCode"
+                                        placeholder="loading..."
+                                        value={formik.values.federationCode}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
+                                        disabled
                                     />
-                                    {formik.touched.dateOfBirth && formik.errors.dateOfBirth && (
-                                        <p className="text-red-500 text-sm">{formik.errors.dateOfBirth}</p>
+                                    {formik.touched.federationCode && formik.errors.federationCode && (
+                                        <p className="text-red-500 text-sm">{formik.errors.federationCode}</p>
                                     )}
                                 </div>
                             </div>
