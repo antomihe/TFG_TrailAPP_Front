@@ -6,6 +6,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
+import { set } from 'date-fns';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -26,6 +27,7 @@ const SkeletonLoader = () => (
 
 export default function NewOrganizerForm() {
     const [loading, setLoading] = React.useState(false);
+    const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const [fedCode, setFedCode] = React.useState<string>('');
@@ -42,7 +44,7 @@ export default function NewOrganizerForm() {
         };
 
         if (!fedCode) fetchFederations();
-    }, [fedCode, userState]);
+    }, []);
 
     if (loading) return <SkeletonLoader />;
 
@@ -59,15 +61,15 @@ export default function NewOrganizerForm() {
                 onSubmit={async (values) => {
                     setError('');
                     setSubmited('');
-                    setLoading(true);
                     try {
-                        await api(userState.access_token).post(`/users/federation`, values);
+                        setSending(true);
+                        await api(userState.access_token).post(`/users/organizer`, values);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         setError(errorMessage || 'Error desconocido');
                     } finally {
-                        setLoading(false);
+                        setSending(false);
                     }
                 }}
             >
@@ -111,8 +113,8 @@ export default function NewOrganizerForm() {
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Crear usuario'}
+                        <Button type="submit" className="w-full mt-6" disabled={sending}>
+                            {sending ? 'Cargando...' : 'Crear usuario'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>

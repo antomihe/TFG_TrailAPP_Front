@@ -24,6 +24,7 @@ const SkeletonLoader = () => (
 
 export default function OfficialProfileForm() {
     const [loading, setLoading] = React.useState(false);
+    const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
@@ -33,8 +34,8 @@ export default function OfficialProfileForm() {
 
     useEffect(() => {
         const fetchUser = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
                 const res = await api(userState.access_token).get(`users/official/id/${userState.id}`);
                 const userData = res.data;
                 setLicense(userData.license);
@@ -61,14 +62,12 @@ export default function OfficialProfileForm() {
                 initialValues={{
                     email: user?.email as string || '',
                     fullName: user?.displayName as string || '',
-                    federationCode: user?.federationCode as string || '',
-                    license: user?.license as string || ''
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
                     setError('');
                     setSubmited('');
-                    setLoading(true);
+                    setSending(true);
                     try {
                         const res = await api(userState.access_token).patch(`/users/official/${userState.id}`, values);
                         setLoading(false);
@@ -78,7 +77,7 @@ export default function OfficialProfileForm() {
                         if (errorMessage) setError(errorMessage);
                         else setError('Error desconocido');
                     } finally {
-                        setLoading(false);
+                        setSending(false);
                     }
                 }}
             >
@@ -134,8 +133,8 @@ export default function OfficialProfileForm() {
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Editar perfil'}
+                        <Button type="submit" className="w-full mt-6" disabled={sending}>
+                            {sending ? 'Cargando...' : 'Editar perfil'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>

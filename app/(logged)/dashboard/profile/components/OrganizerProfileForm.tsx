@@ -24,6 +24,7 @@ const SkeletonLoader = () => (
 
 export default function OrganizerProfileForm() {
     const [loading, setLoading] = React.useState(false);
+    const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
@@ -33,8 +34,8 @@ export default function OrganizerProfileForm() {
 
     useEffect(() => {
         const fetchUser = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
                 const res = await api(userState.access_token).get(`users/organizer/id/${userState.id}`);
                 const userData = res.data;
 
@@ -58,6 +59,7 @@ export default function OrganizerProfileForm() {
     return (
         <div className="max-w-xl mx-auto p-4">
             <Formik
+                enableReinitialize
                 initialValues={{
                     email: user?.email as string || '',
                     name: user?.displayName as string || '',
@@ -66,7 +68,7 @@ export default function OrganizerProfileForm() {
                 onSubmit={async (values) => {
                     setError('');
                     setSubmited('');
-                    setLoading(true);
+                    setSending(true);
                     try {
                         const res = await api(userState.access_token).patch(`/users/organizer/${userState.id}`, values);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
@@ -75,7 +77,7 @@ export default function OrganizerProfileForm() {
                         if (errorMessage) setError(errorMessage);
                         else setError('Error desconocido');
                     } finally {
-                        setLoading(false);
+                        setSending(false);
                     }
                 }}
             >
@@ -119,8 +121,8 @@ export default function OrganizerProfileForm() {
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Editar perfil'}
+                        <Button type="submit" className="w-full mt-6" disabled={sending}>
+                            {sending ? 'Cargando...' : 'Editar perfil'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>

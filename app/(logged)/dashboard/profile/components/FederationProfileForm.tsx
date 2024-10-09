@@ -23,6 +23,7 @@ const SkeletonLoader = () => (
 
 export default function FederationProfileForm() {
     const [loading, setLoading] = React.useState(false);
+    const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
@@ -33,8 +34,8 @@ export default function FederationProfileForm() {
 
     useEffect(() => {
         const fetchUser = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
                 const res = await api(userState.access_token).get(`users/federation/id/${userState.id}`);
                 console.log(res.data);
                 const userData = res.data;
@@ -58,6 +59,7 @@ export default function FederationProfileForm() {
     return (
         <div className="max-w-xl mx-auto p-4">
             <Formik
+                enableReinitialize
                 initialValues={{
                     email: user?.email as string || '',
                 }}
@@ -65,7 +67,7 @@ export default function FederationProfileForm() {
                 onSubmit={async (values) => {
                     setError('');
                     setSubmited('');
-                    setLoading(true);
+                    setSending(true);
                     try {
                         const res = await api(userState.access_token).patch(`/users/federation/${userState.id}`, values);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
@@ -74,7 +76,7 @@ export default function FederationProfileForm() {
                         if (errorMessage) setError(errorMessage);
                         else setError('Error desconocido');
                     } finally {
-                        setLoading(false);
+                        setSending(false);
                     }
                 }}
             >
@@ -115,8 +117,8 @@ export default function FederationProfileForm() {
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Editar perfil'}
+                        <Button type="submit" className="w-full mt-6" disabled={sending}>
+                            {sending ? 'Cargando...' : 'Editar perfil'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>

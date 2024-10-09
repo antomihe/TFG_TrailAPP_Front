@@ -1,4 +1,4 @@
-import PasswordForm from '@/app/(unlogged)/(auth)/password/[token]/components/PasswordForm'
+import VerifyForm from './components/VerifyForm'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function PasswordPage({ params }: { params: { token: string } }) {
@@ -10,7 +10,7 @@ export default function PasswordPage({ params }: { params: { token: string } }) 
         <CardDescription>Asocia una contraseña a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <PasswordForm
+        <VerifyForm
           token={params.token}
         />
       </CardContent>

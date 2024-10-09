@@ -10,7 +10,7 @@ import { useUserState } from '@/store/user/user.store';
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
     region: Yup.string().required('La región es obligatoria'),
-    federationCode: Yup.string()
+    code: Yup.string()
         .required('El código de federación es obligatorio')
         .matches(/^[A-Z]{3}$/, 'El código de federación debe tener 3 letras mayúsculas'),
 });
@@ -26,10 +26,10 @@ const SkeletonLoader = () => (
 
 export default function NewFederationForm() {
     const [loading, setLoading] = React.useState(false);
+    const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
-    const [user, setUser] = React.useState<any | null>(null);
 
 
     if (loading) {
@@ -39,25 +39,26 @@ export default function NewFederationForm() {
     return (
         <div className="max-w-xl mx-auto p-4">
             <Formik
+                enableReinitialize
                 initialValues={{
                     email: '',
                     region: '',
-                    federationCode: '',
+                    code: '',
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
                     setError('');
                     setSubmited('');
-                    setLoading(true);
                     try {
+                        setSending(true);
                         const res = await api(userState.access_token).post(`/users/federation`, values);
-                        setSubmited('¡Éxito! Tus datos han sido actualizados');
+                        setSubmited('¡Exito! Federación creada correctamente');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         if (errorMessage) setError(errorMessage);
                         else setError('Error desconocido');
                     } finally {
-                        setLoading(false);
+                        setSending(false);
                     }
                 }}
             >
@@ -92,24 +93,24 @@ export default function NewFederationForm() {
                                     )}
                                 </div>
                                 <div className="w-2/5 space-y-1">
-                                    <Label htmlFor="federationCode">Código de federación</Label>
+                                    <Label htmlFor="code">Código de federación</Label>
                                     <Input
-                                        id="federationCode"
+                                        id="code"
                                         placeholder="MAD"
-                                        value={formik.values.federationCode}
+                                        value={formik.values.code}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                     />
-                                    {formik.touched.federationCode && formik.errors.federationCode && (
-                                        <p className="text-red-500 text-sm">{formik.errors.federationCode}</p>
+                                    {formik.touched.code && formik.errors.code && (
+                                        <p className="text-red-500 text-sm">{formik.errors.code}</p>
                                     )}
                                 </div>
                             </div>
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                        <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Crear usuario'}
+                        <Button type="submit" className="w-full mt-6" disabled={sending}>
+                            {sending ? 'Cargando...' : 'Crear usuario'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>

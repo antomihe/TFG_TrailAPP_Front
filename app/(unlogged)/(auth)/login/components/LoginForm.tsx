@@ -10,19 +10,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('Email no válido').required('Email es obligatorio'),
-    password: Yup.string().required('La contraseña es obligatoria').min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    password: Yup.string().required('La contraseña es obligatoria'),
 });
 
 export default function LoginForm() {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string>('');
-    const router = useRouter();
-    const params = useSearchParams()
 
     return (
         <>
             <Formik
-                initialValues={{ email: 'federation@example.com', password: 'password1234' }}
+                initialValues={{ email: '', password: '' }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
                     setError('');
