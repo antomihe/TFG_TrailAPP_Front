@@ -9,7 +9,6 @@ import { useUserState } from '@/store/user/user.store';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
-    fullName: Yup.string().required('El nombre completo es obligatorio'),
 });
 
 const SkeletonLoader = () => (
@@ -50,7 +49,7 @@ export default function FederationProfileForm() {
         };
 
         fetchUser();
-    }, [userState.access_token, userState.id]);
+    }, []);
 
     if (loading) {
         return <SkeletonLoader />;

@@ -18,7 +18,5 @@ export function PublicRedirect<T>(Component: React.ComponentType<React.PropsWith
         }
 
         return null;
-
-        return <></>;
     };
 }

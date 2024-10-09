@@ -22,7 +22,7 @@ export default function LoginForm() {
     return (
         <>
             <Formik
-                initialValues={{ email: '', password: '' }}
+                initialValues={{ email: 'federation@example.com', password: 'password1234' }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
                     setError('');
@@ -30,8 +30,6 @@ export default function LoginForm() {
                     try {
                         const res = await api().post('/auth/login', values);
                         useUserState.getState().login(res.data);
-                        const to = params.get('to') || '/dashboard';
-                        router.push(to);
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         if (errorMessage) setError(errorMessage);

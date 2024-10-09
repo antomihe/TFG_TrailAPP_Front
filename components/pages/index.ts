@@ -1,2 +1,3 @@
-export * from './not-found/Loading';
-export * from './not-found/PageNotFound';
+export * from './Loading';
+export * from './NotFound';
+export * from './Unauthorized';

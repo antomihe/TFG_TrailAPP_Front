@@ -15,8 +15,11 @@ function useAuthRedirect(): { shouldRedirect: boolean; loading: boolean } {
 
     useEffect(() => {
         const fetchData = async () => {
+            setFullyLoaded(false);
+            setLoading(true);
             try {
                 const userAccessToken = userState.user?.access_token;
+                
                 if (userAccessToken) {
                     const res = await api().post(`/auth/validToken/${userAccessToken}`);
                     if (res.status === 200 && !!res.data.valid) {
@@ -31,7 +34,7 @@ function useAuthRedirect(): { shouldRedirect: boolean; loading: boolean } {
         };
 
         fetchData();
-    }, []);
+    }, [userState.user]);
 
     useEffect(() => {
         if (fullyLoaded && shouldRedirect) {

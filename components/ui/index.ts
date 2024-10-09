@@ -5,7 +5,7 @@ export * from './card-hover-effect';
 export * from './dropdown-menu';
 export * from './input';
 export * from './label';
-export * from '../pages/not-found/Loading';
+export * from '../pages/Loading';
 export * from './navigation-menu';
 export * from './separator';
 export * from './sheet';

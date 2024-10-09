@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button, Input, Label, Skeleton } from '@/components/ui/';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
@@ -9,7 +9,10 @@ import { useUserState } from '@/store/user/user.store';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
-    name: Yup.string().required('El nombre es obligatorio'),
+    region: Yup.string().required('La región es obligatoria'),
+    federationCode: Yup.string()
+        .required('El código de federación es obligatorio')
+        .matches(/^[A-Z]{3}$/, 'El código de federación debe tener 3 letras mayúsculas'),
 });
 
 const SkeletonLoader = () => (
@@ -18,38 +21,16 @@ const SkeletonLoader = () => (
         <Skeleton height="h-8" width="w-full" className="my-4" />
         <Skeleton height="h-8" width="w-full" className="my-4" />
         <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
     </div>
 );
 
-export default function OrganizerProfileForm() {
+export default function NewFederationForm() {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const { user: userState } = useUserState();
     const [user, setUser] = React.useState<any | null>(null);
-    const [federationName, setFederationName] = React.useState<string>('Cargando...');
 
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                setLoading(true);
-                const res = await api(userState.access_token).get(`users/organizer/id/${userState.id}`);
-                const userData = res.data;
-
-                const resFed = await api(userState.access_token).get(`users/federation/${userData.federationCode}`)
-                setFederationName(resFed.data.displayName);
-                setUser(userData);
-            } catch (error) {
-                setError('Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, []);
 
     if (loading) {
         return <SkeletonLoader />;
@@ -59,8 +40,9 @@ export default function OrganizerProfileForm() {
         <div className="max-w-xl mx-auto p-4">
             <Formik
                 initialValues={{
-                    email: user?.email as string || '',
-                    name: user?.displayName as string || '',
+                    email: '',
+                    region: '',
+                    federationCode: '',
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
@@ -68,7 +50,7 @@ export default function OrganizerProfileForm() {
                     setSubmited('');
                     setLoading(true);
                     try {
-                        const res = await api(userState.access_token).patch(`/users/organizer/${userState.id}`, values);
+                        const res = await api(userState.access_token).post(`/users/federation`, values);
                         setSubmited('¡Éxito! Tus datos han sido actualizados');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
@@ -86,7 +68,7 @@ export default function OrganizerProfileForm() {
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
-                                    placeholder="Cargando..."
+                                    placeholder="eduardo@gmail.com"
                                     value={formik.values.email}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
@@ -94,33 +76,40 @@ export default function OrganizerProfileForm() {
                                 {formik.touched.email && formik.errors.email && (
                                     <p className="text-red-500 text-sm">{formik.errors.email}</p>
                                 )}
-                                <Label htmlFor="name">Nombre</Label>
-                                <Input
-                                    id="name"
-                                    placeholder="Cargando..."
-                                    value={formik.values.name}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.name && formik.errors.name && (
-                                    <p className="text-red-500 text-sm">{formik.errors.name}</p>
-                                )}
                             </div>
-                            <div className="flex space-x-4">
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="federationName">Federación autonómica</Label>
+                            <div className="flex space-x-3">
+                                <div className="w-3/5 space-y-1">
+                                    <Label htmlFor="region">Región</Label>
                                     <Input
-                                        id="federationName"
-                                        value={federationName}
-                                        disabled
+                                        id="region"
+                                        placeholder="Madrid"
+                                        value={formik.values.region}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.region && formik.errors.region && (
+                                        <p className="text-red-500 text-sm">{formik.errors.region}</p>
+                                    )}
+                                </div>
+                                <div className="w-2/5 space-y-1">
+                                    <Label htmlFor="federationCode">Código de federación</Label>
+                                    <Input
+                                        id="federationCode"
+                                        placeholder="MAD"
+                                        value={formik.values.federationCode}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                    />
+                                    {formik.touched.federationCode && formik.errors.federationCode && (
+                                        <p className="text-red-500 text-sm">{formik.errors.federationCode}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Editar perfil'}
+                            {loading ? 'Cargando...' : 'Crear usuario'}
                         </Button>
                         {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
