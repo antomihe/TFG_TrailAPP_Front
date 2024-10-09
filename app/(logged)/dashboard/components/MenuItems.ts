@@ -13,24 +13,24 @@ export const NationalFederationLinks: MenuItemList = [
             "Dar de alta nueva federación autonómica",
         link: "dashboard/new/federation",
     },
-    {
-        title: "Federaciones autonómicas",
-        description:
-            "Administrar federaciones autonómicas",
-        link: "dashboard/federations",
-    },
 ];
 
 export const FederationLinks: MenuItemList = [
-    
+    {
+        title: "Organizadores",
+        description:
+            "Dar de alta nuevo organizador",
+        link: "dashboard/new/organizer",
+    },
+
 ];
 
 export const OrganizerLinks: MenuItemList = [
-    
+
 ];
 
 export const OfficialLinks: MenuItemList = [
-    
+
 ];
 
 
