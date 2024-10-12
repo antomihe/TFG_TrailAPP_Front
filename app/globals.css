@@ -2,26 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 95%;
+    --foreground: 0 0% 10%;
+    --muted: 0 0% 80%;
+    --muted-foreground: 0 0% 40%;
+    --popover: 0 0% 95%;
+    --popover-foreground: 0 0% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --border: 0 0% 80%;
+    --input: 0 0% 90%;
+    --primary: 0 0% 40%;
+    --primary-foreground: 0 0% 90%;
+    --secondary: 0 0% 70%;
+    --secondary-foreground: 0 0% 30%;
+    --accent: 0 0% 70%;
+    --accent-foreground: 0 0% 30%;
+    --destructive: 11 80% 22%;
+    --destructive-foreground: 11 80% 82%;
+    --ring: 0 0% 40%;
+    --radius: 0.5rem;
+    --chart-1: 0 0% 75%;
+    --chart-2: 210 68% 55%;
+    --chart-3: 230 47% 50%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 253 43% 3%;
+    --foreground: 253 31% 98%;
+    --muted: 253 43% 20%;
+    --muted-foreground: 253 13% 63%;
+    --popover: 253 43% 3%;
+    --popover-foreground: 253 31% 98%;
+    --card: 253 43% 4%;
+    --card-foreground: 253 31% 99%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --primary: 253 91% 58%;
+    --primary-foreground: 253 91% 98%;
+    --secondary: 253 7% 9%;
+    --secondary-foreground: 253 7% 69%;
+    --accent: 240 76% 11%;
+    --accent-foreground: 253 13% 74%;
+    --destructive: 339.2 90.36% 51.18%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 253 91% 58%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply box-border bg-background text-foreground;
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .min-h-screen {
+    min-height: 100vh; /* Fallback */
+    min-height: 100dvh;
+  }
+  .h-screen {
+    height: 100vh; /* Fallback */
+    height: 100dvh;
   }
 }
