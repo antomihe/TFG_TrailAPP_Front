@@ -6,6 +6,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
+import { RegionsComponent } from './RegionsComponent';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -29,8 +30,8 @@ export default function NewFederationForm() {
     const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
+    const [regionKey, setRegionKey] = React.useState<number>(0);
     const { user: userState } = useUserState();
-
 
     if (loading) {
         return <SkeletonLoader />;
@@ -46,13 +47,15 @@ export default function NewFederationForm() {
                     code: '',
                 }}
                 validationSchema={schema}
-                onSubmit={async (values) => {
+                onSubmit={async (values, { resetForm }) => {
                     setError('');
                     setSubmited('');
                     try {
                         setSending(true);
                         const res = await api(userState.access_token).post(`/users/federation`, values);
-                        setSubmited('¡Exito! Federación creada correctamente');
+                        setSubmited('¡Éxito! Federación creada correctamente');
+                        resetForm();
+                        setRegionKey((prevKey) => prevKey + 1); // Actualizar la key del componente
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         if (errorMessage) setError(errorMessage);
@@ -81,17 +84,17 @@ export default function NewFederationForm() {
                             <div className="flex space-x-3">
                                 <div className="w-3/5 space-y-1">
                                     <Label htmlFor="region">Región</Label>
-                                    <Input
-                                        id="region"
-                                        placeholder="Madrid"
-                                        value={formik.values.region}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
+                                    <RegionsComponent
+                                        key={regionKey} 
+                                        region={formik.values.region}
+                                        setError={setError}
+                                        setFieldValue={formik.setFieldValue}
                                     />
-                                    {formik.touched.region && formik.errors.region && (
+                                    {formik.errors.region && (
                                         <p className="text-red-500 text-sm">{formik.errors.region}</p>
                                     )}
                                 </div>
+
                                 <div className="w-2/5 space-y-1">
                                     <Label htmlFor="code">Código de federación</Label>
                                     <Input
