@@ -28,6 +28,11 @@ export const FederationLinks: MenuItemList = [
 ];
 
 export const OrganizerLinks: MenuItemList = [
+    {
+        title: "Eventos",
+        description: "Registrar nuevo evento",
+        link: "dashboard/new/event",
+    }
 
 ];
 
