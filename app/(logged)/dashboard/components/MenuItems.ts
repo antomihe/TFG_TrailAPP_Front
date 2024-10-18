@@ -25,6 +25,11 @@ export const FederationLinks: MenuItemList = [
         description: "Validación de jueces",
         link: "dashboard/officials/validate",
     },
+    {
+        title: "Eventos",
+        description: "Validación de eventos",
+        link: "dashboard/events/validate",
+    },
 ];
 
 export const OrganizerLinks: MenuItemList = [

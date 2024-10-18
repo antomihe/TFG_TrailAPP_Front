@@ -8,14 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckIcon, TrashIcon } from 'lucide-react';
 
-interface Official {
+interface Event {
     id: string;
-    email: string;
-    displayName: string;
-    federationCode: string;
-    license: string;
-    validatedByFederation: boolean;
-    validatedAt: string | null;
+    name: string;
+    date: string;
+    location: string;
+    province: string;
+    validated: boolean;
 }
 
 const SkeletonLoader = () => (
@@ -24,20 +23,23 @@ const SkeletonLoader = () => (
     </div>
 );
 
-export default function OfficialValidationList() {
+export default function EventsValidationList() {
     const user = useUserState().user;
-    const [officials, setOfficials] = useState<Official[]>([]);
+    const [events, setEvents] = useState<Event[]>([]);
     const [sending, setSending] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchOfficials = async () => {
+        const fetchEvents = async () => {
             setLoading(true);
             try {
                 const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
                 const federationCode = resFed.data.code;
-                const res = await api(user.access_token).get(`users/official/unvalidated/${federationCode}`);
-                setOfficials(res.data);
+                const res = await api(user.access_token).get(`events/unvalidated/${federationCode}`);
+                for (let i = 0; i < res.data.length; i++) {
+                    res.data[i].validated = false;
+                }   
+                setEvents(res.data);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -45,18 +47,18 @@ export default function OfficialValidationList() {
             }
         };
 
-        fetchOfficials();
+        fetchEvents();
     }, [user.id]);
 
-    const handleValidate = async (officialId: string) => {
+    const handleValidate = async (eventId: string) => {
         setSending(true);
         try {
-            await api(user.access_token).patch(`users/official/${officialId}/validate`);
-            setOfficials((prevOfficials) =>
-                prevOfficials.map((official) =>
-                    official.id === officialId
-                        ? { ...official, validatedByFederation: true }
-                        : official
+            await api(user.access_token).patch(`events/${eventId}/validate`);
+            setEvents((prevEvents) =>
+                prevEvents.map((event) =>
+                    event.id === eventId
+                        ? { ...event, validated: true }
+                        : event
                 )
             );
         } catch (err) {
@@ -66,12 +68,12 @@ export default function OfficialValidationList() {
         }
     };
 
-    const handleDelete = async (officialId: string) => {
+    const handleDelete = async (eventId: string) => {
         setSending(true);
         try {
-            await api(user.access_token).delete(`users/official/${officialId}`);
-            setOfficials((prevOfficials) =>
-                prevOfficials.filter((official) => official.id !== officialId)
+            await api(user.access_token).delete(`events/${eventId}`);
+            setEvents((prevEvents) =>
+                prevEvents.filter((event) => event.id !== eventId)
             );
         } catch (err) {
             console.error(err);
@@ -84,8 +86,8 @@ export default function OfficialValidationList() {
         return <SkeletonLoader />;
     }
 
-    if (officials.length === 0) {
-        return <Large className='text-center pt-5'>No hay jueces pendientes de validación</Large>;
+    if (events.length === 0) {
+        return <Large className='text-center pt-5'>No hay eventos pendientes de validación</Large>;
     }
 
     return (
@@ -94,34 +96,34 @@ export default function OfficialValidationList() {
                 <Table className="min-w-full">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Email</TableHead>
                             <TableHead>Nombre</TableHead>
-                            <TableHead>Licencia</TableHead>
+                            <TableHead>Fecha</TableHead>
+                            <TableHead>Ubicación</TableHead>
                             <TableHead>Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {officials.map((official) => (
-                            <TableRow key={official.id}>
-                                <TableCell>{official.email}</TableCell>
-                                <TableCell>{official.displayName}</TableCell>
-                                <TableCell>{official.license}</TableCell>
+                        {events.map((event) => (
+                            <TableRow key={event.id}>
+                                <TableCell>{event.name}</TableCell>
+                                <TableCell>{event.date}</TableCell>
+                                <TableCell>{`${event.location} - ${event.province}`}</TableCell>
                                 <TableCell>
                                     <div className="flex space-x-2">
-                                        {!official.validatedByFederation ? (
+                                        {!event.validated ? (
                                             <>
-                                                <Button
-                                                    onClick={() => handleValidate(official.id)}
-                                                    variant="outline"
-                                                    className="flex items-center"
+                                                <Button 
+                                                    onClick={() => handleValidate(event.id)} 
+                                                    variant="outline" 
+                                                    className="flex items-center" 
                                                     disabled={sending}
                                                 >
                                                     <CheckIcon className="mr-2 h-4 w-4" /> Validar
                                                 </Button>
-                                                <Button
-                                                    onClick={() => handleDelete(official.id)}
-                                                    variant="destructive"
-                                                    className="flex items-center"
+                                                <Button 
+                                                    onClick={() => handleDelete(event.id)} 
+                                                    variant="destructive" 
+                                                    className="flex items-center" 
                                                     disabled={sending}
                                                 >
                                                     <TrashIcon className="mr-2 h-4 w-4" /> Borrar
