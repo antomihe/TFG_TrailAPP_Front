@@ -33,7 +33,6 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, TrashIcon, ChevronDown, Pencil } from 'lucide-react';
-import { render } from 'react-dom';
 
 interface Event {
     id: string;
@@ -178,6 +177,7 @@ export default function EventsManagerList() {
                             variant="outline"
                             className="flex items-center bg-transparent border-primary"
                             disabled={sending}
+                            onMouseEnter={() => router.prefetch(`/dashboard/events/manage/${event.id}`)}
                         >
                             <Pencil className="mr-2 h-4 w-4" /> Editar
                         </Button>
@@ -238,48 +238,46 @@ export default function EventsManagerList() {
 
     return (
         <div className="w-full">
-            <div className="flex items-center py-4 space-x-4">
+            <div className="flex items-center justify-between py-4 space-x-4">
                 <Input
                     placeholder="Filtrar por nombre de evento..."
                     value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                     onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
                     className="max-w-sm"
                 />
-                <div className='flex justify-end'>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="ml-auto">
-                                Columnas <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent >
-                            {table.getAllColumns().map((column) => (
-                                column.getCanHide() && (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) => column.toggleVisibility(value)}
-                                    >
-                                        {(() => {
-                                            switch (column.id) {
-                                                case "date":
-                                                    return "Fecha";
-                                                case "location":
-                                                    return "Localidad";
-                                                case "province":
-                                                    return "Provincia";
-                                                case "validated":
-                                                    return "Validado";
-                                                default:
-                                                    return column.id;
-                                            }
-                                        })()}
-                                    </DropdownMenuCheckboxItem>
-                                )
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="ml-auto">
+                            Columnas <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        {table.getAllColumns().map((column) => (
+                            column.getCanHide() && (
+                                <DropdownMenuCheckboxItem
+                                    key={column.id}
+                                    checked={column.getIsVisible()}
+                                    onCheckedChange={(value) => column.toggleVisibility(value)}
+                                >
+                                    {(() => {
+                                        switch (column.id) {
+                                            case "date":
+                                                return "Fecha";
+                                            case "location":
+                                                return "Localidad";
+                                            case "province":
+                                                return "Provincia";
+                                            case "validated":
+                                                return "Validado";
+                                            default:
+                                                return column.id;
+                                        }
+                                    })()}
+                                </DropdownMenuCheckboxItem>
+                            )
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             <Table>

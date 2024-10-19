@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,14 +10,25 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Props = {
-    date: Date | null;
+    date: Date | string | null;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
 };
 
-export function DateComponent({ date, setFieldValue }: Props) {
+const setDateToNoon = (date: Date) => {
+    const newDate = new Date(date);
+    newDate.setHours(12, 0, 0, 0); 
+    return newDate;
+};
+
+export function DateInput({ date, setFieldValue }: Props) {
+    const validDate = typeof date === 'string' ? setDateToNoon(parseISO(date)) : date;
+
+    const isDateValid = validDate && isValid(validDate);
 
     const handleSelectDate = (selectedDate: Date | undefined) => {
-        setFieldValue('date', selectedDate);      
+        if (selectedDate) {
+            setFieldValue('date', setDateToNoon(selectedDate));
+        }
     };
 
     return (
@@ -28,17 +39,17 @@ export function DateComponent({ date, setFieldValue }: Props) {
                         variant={"outline"}
                         className={cn(
                             "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
+                            !isDateValid && "text-muted-foreground"
                         )}
                     >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                        {isDateValid ? format(validDate!, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                     <Calendar
                         mode="single"
-                        selected={date || undefined}
+                        selected={isDateValid ? validDate : undefined}
                         onSelect={handleSelectDate}
                         initialFocus
                     />

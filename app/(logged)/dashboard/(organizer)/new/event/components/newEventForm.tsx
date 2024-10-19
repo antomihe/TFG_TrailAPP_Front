@@ -6,9 +6,9 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
-import { ProvincesComponent } from './provinces';
-import { LocationComponent } from './locations';
-import { DateComponent } from './dateComponent';
+import { ProvincesComponent } from '@/components/ui/provinceInput';
+import { LocationComponent } from '@/components/ui/locationInput';
+import { DateInput } from '@/components/ui/dateInput';
 
 const schema = Yup.object().shape({
     name: Yup.string().required('El nombre es obligatorio'),
@@ -84,7 +84,7 @@ export default function NewEventForm() {
 
                             <div className="space-y-1">
                                 <Label htmlFor="date">Fecha</Label>
-                                <DateComponent
+                                <DateInput
                                     date={values.date}
                                     setFieldValue={setFieldValue}
                                 />

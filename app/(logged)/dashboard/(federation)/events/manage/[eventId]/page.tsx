@@ -1,17 +1,15 @@
-'use client'
 
-import { useParams } from 'next/navigation'
-import React from 'react'
+import { Head } from '@/components/layout';
+import EditElementForm from './components/EditElement';
 
-const page = () => {
 
-    const params = useParams()
+export default function EditEventPage() {
 
-    return (
-        <div>
-            Event - {params.eventId}
-        </div>
-    )
+  return (
+    <>
+      <Head title="Evento" subtitle="Editar evento" />
+
+      <EditElementForm />      
+    </>
+  );
 }
-
-export default page
