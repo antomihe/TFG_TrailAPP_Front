@@ -15,4 +15,4 @@ export * from './spinner'
 export * from './tabs';
 export * from './themeIcon';
 export * from './typography';
-export * from './yearComponent';
+export * from './year';

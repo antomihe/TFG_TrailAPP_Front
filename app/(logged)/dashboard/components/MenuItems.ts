@@ -30,6 +30,11 @@ export const FederationLinks: MenuItemList = [
         description: "Validación de eventos",
         link: "dashboard/events/validate",
     },
+    {
+        title: "Eventos",
+        description: "Administración de eventos",
+        link: "dashboard/events/manage",
+    },
 ];
 
 export const OrganizerLinks: MenuItemList = [
