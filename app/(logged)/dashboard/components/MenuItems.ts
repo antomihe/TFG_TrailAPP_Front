@@ -35,6 +35,11 @@ export const FederationLinks: MenuItemList = [
         description: "Administración de eventos",
         link: "dashboard/events/manage",
     },
+    {
+        title: "Eventos",
+        description: "Asignación de jueces",
+        link: "dashboard/events/jury",
+    },
 ];
 
 export const OrganizerLinks: MenuItemList = [

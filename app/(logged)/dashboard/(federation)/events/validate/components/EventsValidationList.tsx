@@ -7,6 +7,7 @@ import api from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckIcon, TrashIcon } from 'lucide-react';
+import { dateFormatter } from '@/lib/utils';
 
 interface Event {
     id: string;
@@ -106,7 +107,7 @@ export default function EventsValidationList() {
                         {events.map((event) => (
                             <TableRow key={event.id}>
                                 <TableCell>{event.name}</TableCell>
-                                <TableCell>{event.date}</TableCell>
+                                <TableCell>{dateFormatter(new Date(event.date))}</TableCell>
                                 <TableCell>{`${event.location} - ${event.province}`}</TableCell>
                                 <TableCell>
                                     <div className="flex space-x-2">

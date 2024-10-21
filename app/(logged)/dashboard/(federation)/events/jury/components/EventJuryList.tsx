@@ -32,7 +32,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, TrashIcon, ChevronDown, Pencil } from 'lucide-react';
+import { ArrowUpDown, TrashIcon, ChevronDown, BookUser } from 'lucide-react';
 import { dateFormatter } from '@/lib/utils';
 
 interface Event {
@@ -44,11 +44,10 @@ interface Event {
     validated: boolean;
 }
 
-export default function EventsManagerList() {
+export default function EventsJuryList() {
     const router = useRouter()
     const user = useUserState().user;
     const [events, setEvents] = useState<Event[]>([]);
-    const [sending, setSending] = useState(false);
     const [loading, setLoading] = useState(true);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -63,7 +62,7 @@ export default function EventsManagerList() {
             try {
                 const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
                 const federationCode = resFed.data.code;
-                const res = await api(user.access_token).get(`events/federation/${federationCode}`);
+                const res = await api(user.access_token).get(`events/validated/${federationCode}`);
                 setEvents(res.data);
             } catch (err) {
                 console.error(err);
@@ -74,20 +73,6 @@ export default function EventsManagerList() {
 
         fetchEvents();
     }, [user.id]);
-
-    const handleDelete = async (eventId: string) => {
-        setSending(true);
-        try {
-            await api(user.access_token).delete(`events/${eventId}`);
-            setEvents(prevEvents =>
-                prevEvents.filter(event => event.id !== eventId)
-            );
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setSending(false);
-        }
-    };
 
     interface CustomSortingFnRow {
         getValue: (key: string) => string;
@@ -151,22 +136,6 @@ export default function EventsManagerList() {
             cell: ({ row }) => <div>{row.getValue('province')}</div>,
         },
         {
-            accessorKey: "validated",
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Validado <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            ),
-            cell: ({ row }) => (
-                <div>
-                    {row.getValue('validated') ? 'Sí' : 'No'}
-                </div>
-            ),
-        },
-        {
             id: "actions",
             enableHiding: false,
             cell: ({ row }) => {
@@ -174,22 +143,14 @@ export default function EventsManagerList() {
                 return (
                     <div className="flex space-x-2 justify-end'">
                         <Button
-                            onClick={() => router.push(`/dashboard/events/manage/${event.id}`)}
+                            onClick={() => router.push(`/dashboard/events/jury/${event.id}`)}
                             variant="outline"
                             className="flex items-center bg-transparent border-primary"
-                            disabled={sending}
-                            onMouseEnter={() => router.prefetch(`/dashboard/events/manage/${event.id}`)}
+                            onMouseEnter={() => router.prefetch(`/dashboard/events/jury/${event.id}`)}
                         >
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                            <BookUser className="mr-2 h-4 w-4" /> Asignar jurado
                         </Button>
-                        <Button
-                            onClick={() => handleDelete(event.id)}
-                            variant="destructive"
-                            className="flex items-center"
-                            disabled={sending}
-                        >
-                            <TrashIcon className="mr-2 h-4 w-4" /> Borrar
-                        </Button>
+
                     </div>
                 );
             },

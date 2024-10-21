@@ -6,18 +6,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function dateToText(date: Date): string {
-  date = new Date(date);
+  return new Date(date).toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
 
-  const months = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-  ];
-
-  const days = date.getDate();
-  const mes = months[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${days} de ${mes} de ${year}`;
+export function dateFormatter(date: Date): string {
+  return new Date(date).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 }
 
 
