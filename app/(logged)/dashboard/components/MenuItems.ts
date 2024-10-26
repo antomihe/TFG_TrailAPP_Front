@@ -12,6 +12,11 @@ export const NationalFederationLinks: MenuItemList = [
         description: "Dar de alta nueva federación autonómica",
         link: "dashboard/new/federation",
     },
+    {
+        title: "Eventos",
+        description: "Asignación de jueces",
+        link: "dashboard/jury",
+    },
 ];
 
 export const FederationLinks: MenuItemList = [
