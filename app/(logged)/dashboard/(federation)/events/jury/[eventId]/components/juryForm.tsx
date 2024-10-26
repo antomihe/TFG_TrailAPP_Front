@@ -73,30 +73,12 @@ export default function JuryForm() {
     const [alertDescription, setAlertDescription] = useState<string>('');
 
     useEffect(() => {
-        const fetchOfficials = async () => {
-            setLoading(true);
-            try {
-                const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
-                const federationCode = resFed.data.code;
-                const res = await api(user.access_token).get(`users/official/federation/${federationCode}`);
-                setOfficials(res.data);
-            } catch (error) {
-                setError('Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOfficials();
-    }, []);
-
-    useEffect(() => {
         const fetchOfficialsAndJury = async () => {
             setLoading(true);
             try {
                 const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
                 const federationCode = resFed.data.code;
-                const resOfficials = await api(user.access_token).get(`users/official/federation/${federationCode}`);
+                const resOfficials = await api(user.access_token).get(`users/official/validated/${federationCode}`);
                 setOfficials(resOfficials.data);
 
                 const resJury = await api(user.access_token).get(`/events/${params.eventId}/jury`);
@@ -122,7 +104,7 @@ export default function JuryForm() {
                             userId: judge.userId,
                             isNational: judge.isNational,
                             isReferee: judge.isReferee,
-                            canEdit: false,
+                            canEdit: !judge.isNational,
                             erase: false,
                         };
                     });
@@ -189,7 +171,7 @@ export default function JuryForm() {
                         const remainingJudges = values.judges.filter(judge => !judge.erase);
                         setJury(remainingJudges);
 
-                        remainingJudges.forEach(judge => judge.canEdit = false);
+                        remainingJudges.forEach(judge => judge.isNational ? judge.canEdit = false : judge.canEdit = true);
 
                         setSuccess('Guardado correctamente');
                     } catch (error) {
@@ -232,7 +214,7 @@ export default function JuryForm() {
                                                                         className={
                                                                             cn(
                                                                                 "w-full bg-input",
-                                                                                judge.isReferee && "text-bold underline",
+                                                                                judge.isReferee && "underline",
                                                                                 judge.erase && "text-destructive line-through"
                                                                             )
                                                                         }
@@ -302,14 +284,16 @@ export default function JuryForm() {
                                                                     )}
                                                                 </TableCell>
                                                                 <TableCell className="w-6 text-right">
-                                                                    {judge.canEdit && !judge.erase && (
+                                                                    {(judge.canEdit || !judge.isNational) && !judge.erase && (
                                                                         <Button
                                                                             type="button"
-                                                                            variant="ghost"
+                                                                            variant={judge.isNational ? "secondary" : "ghost"}
                                                                             className="ml-2"
                                                                             onClick={() => {
                                                                                 const newJury = !values.judges[index].isNational;
                                                                                 setFieldValue(`judges.${index}.isNational`, newJury);
+                                                                                setFieldValue(`judges.${index}.userId`, '');
+                                                                                setFieldValue(`judges.${index}.name`, '');
                                                                             }}
                                                                         >
                                                                             {values.judges[index].isNational ? (
@@ -320,7 +304,7 @@ export default function JuryForm() {
                                                                         </Button>
                                                                     )}
 
-                                                                    {index > 0 && (judge.canEdit || !judge.isNational) &&
+                                                                    {!judge.isReferee && (judge.canEdit || !judge.isNational) &&
                                                                         (
                                                                             <Button
                                                                                 type="button"

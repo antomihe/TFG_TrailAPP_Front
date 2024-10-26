@@ -36,7 +36,7 @@ const validationSchema = Yup.object().shape({
     judges: Yup.array().of(
         Yup.object().shape({
             name: Yup.string().when(['isNational', 'erase'], (values, schema) => {
-                if (values[0] || values[1]) {
+                if (!values[0] || values[1]) {
                     return schema.notRequired();
                 } else {
                     return schema.required("El juez es obligatorio");
@@ -70,33 +70,12 @@ export default function JuryForm() {
     const [success, setSuccess] = useState<string>('');
     const [sendingError, setSendingError] = useState<string>('');
     const [openPopovers, setOpenPopovers] = useState<boolean[]>([]);
-    const [alertDescription, setAlertDescription] = useState<string>('');
-
-    useEffect(() => {
-        const fetchOfficials = async () => {
-            setLoading(true);
-            try {
-                const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
-                const federationCode = resFed.data.code;
-                const res = await api(user.access_token).get(`users/official/federation/${federationCode}`);
-                setOfficials(res.data);
-            } catch (error) {
-                setError('Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOfficials();
-    }, []);
 
     useEffect(() => {
         const fetchOfficialsAndJury = async () => {
             setLoading(true);
             try {
-                const resFed = await api(user.access_token).get(`users/federation/id/${user.id}`);
-                const federationCode = resFed.data.code;
-                const resOfficials = await api(user.access_token).get(`users/official/federation/${federationCode}`);
+                const resOfficials = await api(user.access_token).get(`users/official/validated`);
                 setOfficials(resOfficials.data);
 
                 const resJury = await api(user.access_token).get(`/events/${params.eventId}/jury`);
@@ -107,10 +86,7 @@ export default function JuryForm() {
                 let initialJury: Judge[] = [];
 
                 if (orderedJury.length === 0) {
-                    initialJury = [
-                        { role: 'Juez Árbitro', name: '', isNational: false, isReferee: true, userId: '', canEdit: true, erase: false },
-                    ];
-                    setAlertDescription('Para pasar una designación a la RFEA, selecciona el icono con un ojo.');
+                    setError('No se ha realizado aún ninguna designación por la federación autonómica');
                 } else {
                     const juryPromises = orderedJury.map(async (judge: Judge) => {
                         let name = '';
@@ -122,12 +98,11 @@ export default function JuryForm() {
                             userId: judge.userId,
                             isNational: judge.isNational,
                             isReferee: judge.isReferee,
-                            canEdit: false,
+                            canEdit: judge.isNational,
                             erase: false,
                         };
                     });
                     initialJury = await Promise.all(juryPromises);
-                    setAlertDescription('Designaciones nacionales ya enviadas a la RFEA. No es posible modificar o eliminar designaciones nacionales.');
                 }
 
                 setJury(initialJury);
@@ -149,9 +124,9 @@ export default function JuryForm() {
         <div className="flex flex-col items-center max-w-4xl mx-auto">
             <Alert>
                 <InfoIcon className="h-4 w-4" />
-                <AlertTitle>Designaciones nacionales</AlertTitle>
+                <AlertTitle>Información</AlertTitle>
                 <AlertDescription className="mt-3">
-                    {alertDescription}
+                    Para devolver una designación a la federación correspondiente, pulse el botón con el ojo.
                 </AlertDescription>
             </Alert>
 
@@ -189,7 +164,7 @@ export default function JuryForm() {
                         const remainingJudges = values.judges.filter(judge => !judge.erase);
                         setJury(remainingJudges);
 
-                        remainingJudges.forEach(judge => judge.canEdit = false);
+                        remainingJudges.forEach(judge => judge.isNational ? judge.canEdit = true : judge.canEdit = false);
 
                         setSuccess('Guardado correctamente');
                     } catch (error) {
@@ -227,12 +202,12 @@ export default function JuryForm() {
                                                                         as={Input}
                                                                         name={`judges.${index}.role`}
                                                                         readOnly={judge.isReferee}
-                                                                        disabled={(!judge.canEdit && judge.isNational) || judge.erase}
+                                                                        disabled={(!judge.canEdit && !judge.isNational) || judge.erase}
                                                                         value={judge.isReferee ? 'Juez Árbitro' : judge.role}
                                                                         className={
                                                                             cn(
                                                                                 "w-full bg-input",
-                                                                                judge.isReferee && "text-bold underline",
+                                                                                judge.isReferee && "underline",
                                                                                 judge.erase && "text-destructive line-through"
                                                                             )
                                                                         }
@@ -252,7 +227,7 @@ export default function JuryForm() {
                                                                         <PopoverTrigger asChild>
                                                                             <Button
                                                                                 variant="outline"
-                                                                                disabled={judge.isNational || judge.erase}
+                                                                                disabled={!judge.isNational || judge.erase}
                                                                                 role="combobox"
                                                                                 aria-expanded={openPopovers[index]}
                                                                                 className={
@@ -302,25 +277,23 @@ export default function JuryForm() {
                                                                     )}
                                                                 </TableCell>
                                                                 <TableCell className="w-6 text-right">
-                                                                    {judge.canEdit && !judge.erase && (
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="ghost"
-                                                                            className="ml-2"
-                                                                            onClick={() => {
-                                                                                const newJury = !values.judges[index].isNational;
-                                                                                setFieldValue(`judges.${index}.isNational`, newJury);
-                                                                            }}
-                                                                        >
-                                                                            {values.judges[index].isNational ? (
-                                                                                <EyeOffIcon className="h-4 w-4" />
-                                                                            ) : (
-                                                                                <EyeIcon className="h-4 w-4" />
-                                                                            )}
-                                                                        </Button>
-                                                                    )}
-
-                                                                    {index > 0 && (judge.canEdit || !judge.isNational) &&
+                                                                    {(judge.canEdit || judge.isNational) &&
+                                                                        (
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant={!judge.isNational ? "secondary" : "ghost"}
+                                                                                onClick={() => {
+                                                                                    const newJury = !values.judges[index].isNational;
+                                                                                    setFieldValue(`judges.${index}.isNational`, newJury);
+                                                                                    setFieldValue(`judges.${index}.userId`, '');
+                                                                                    setFieldValue(`judges.${index}.name`, '');
+                                                                                }}
+                                                                            >
+                                                                                {!judge.isNational ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                                                                            </Button>
+                                                                        )
+                                                                    }
+                                                                    {(judge.canEdit || judge.isNational) && !judge.isReferee &&
                                                                         (
                                                                             <Button
                                                                                 type="button"
@@ -335,21 +308,10 @@ export default function JuryForm() {
                                                                         )
                                                                     }
                                                                 </TableCell>
-
                                                             </TableRow>
                                                         ))}
                                                     </TableBody>
                                                 </Table>
-                                                <div className="">
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        className="w-full"
-                                                        onClick={() => push({ role: 'Juez Auxiliar', name: '', isNational: false, isReferee: false, userId: '', canEdit: true, erase: false })}
-                                                    >
-                                                        Añadir juez auxiliar
-                                                    </Button>
-                                                </div>
                                             </div>
                                         )}
                                     </FieldArray>
