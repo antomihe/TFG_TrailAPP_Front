@@ -24,11 +24,13 @@ type Props = {
     province: string;
     location: string;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
+    setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
 }
 
-export function LocationComponent({ setError, province, location, setFieldValue, }: Props) {
+export function LocationComponent({ setError, province, location, setFieldValue, setFieldTouched }: Props) {
     const [open, setOpen] = React.useState(false)
-
+    const [locations, setLocations] = React.useState<{ label: any; value: any; }[]>([]);
+    
     const getLocations = async () => {
         try {
             const result = [];
@@ -47,7 +49,6 @@ export function LocationComponent({ setError, province, location, setFieldValue,
         }
     }
 
-    const [locations, setLocations] = React.useState<{ label: any; value: any; }[]>([]);
 
     React.useEffect(() => {
         const fetchProvinces = async () => {
@@ -61,19 +62,25 @@ export function LocationComponent({ setError, province, location, setFieldValue,
     }, []);
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+            open={open}
+            onOpenChange={setOpen}
+        >
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between"
+                    className={cn("w-full justify-between font-normal", !location && "text-accent-foreground")}
                 >
                     {location ? location : "Seleccione localidad..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent
+                className="w-[200px] p-0"
+                onBlur={() => setFieldTouched('location', true)}
+            >
                 <Command>
                     <CommandInput placeholder="Buscar localidad..." />
                     <CommandList>

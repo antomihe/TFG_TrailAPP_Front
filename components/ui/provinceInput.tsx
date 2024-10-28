@@ -24,10 +24,12 @@ type Props = {
     province: string;
     location: string;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
+    setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
 }
 
-export function ProvincesComponent({ setError, province, location, setFieldValue }: Props) {
+export function ProvincesComponent({ setError, province, location, setFieldValue, setFieldTouched }: Props) {
     const [open, setOpen] = React.useState(false)
+    const [provinces, setProvinces] = React.useState<{ label: any; value: any; }[]>([]);
 
     const getProvinces = async () => {
         try {
@@ -47,8 +49,6 @@ export function ProvincesComponent({ setError, province, location, setFieldValue
         }
     }
 
-    const [provinces, setProvinces] = React.useState<{ label: any; value: any; }[]>([]);
-
     React.useEffect(() => {
         const fetchProvinces = async () => {
             const result = await getProvinces();
@@ -61,19 +61,25 @@ export function ProvincesComponent({ setError, province, location, setFieldValue
     }, []);
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+            open={open}
+            onOpenChange={setOpen}
+        >
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between"
+                    className={cn("w-full justify-between font-normal", !province && "text-accent-foreground")}
                 >
                     {province ? province : "Seleccione provincia..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent
+                onBlur={() => setFieldTouched('province', true)}
+                className="w-[200px] p-0"
+            >
                 <Command>
                     <CommandInput placeholder="Buscar provincia..." />
                     <CommandList>
@@ -86,6 +92,7 @@ export function ProvincesComponent({ setError, province, location, setFieldValue
                                         setOpen(false);
                                         setFieldValue('province', currentValue);
                                         location && setFieldValue('location', '');
+                                        location && setFieldTouched('location', false);
                                     }}
                                 >
                                     <Check

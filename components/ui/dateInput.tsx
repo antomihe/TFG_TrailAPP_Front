@@ -11,16 +11,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 type Props = {
     date: Date | string | null;
+    fromDate?: Date | undefined;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
+    setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
 };
 
 const setDateToNoon = (date: Date) => {
     const newDate = new Date(date);
-    newDate.setHours(12, 0, 0, 0); 
+    newDate.setHours(12, 0, 0, 0);
     return newDate;
 };
 
-export function DateInput({ date, setFieldValue }: Props) {
+export function DateInput({ date, setFieldValue, setFieldTouched, fromDate = undefined }: Props) {
     const validDate = typeof date === 'string' ? setDateToNoon(parseISO(date)) : date;
 
     const isDateValid = validDate && isValid(validDate);
@@ -46,10 +48,14 @@ export function DateInput({ date, setFieldValue }: Props) {
                         {isDateValid ? format(validDate!, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent
+                    onBlur={() => setFieldTouched("date", true)}
+                    className="w-auto p-0">
                     <Calendar
                         mode="single"
+                        fromDate={fromDate}
                         selected={isDateValid ? validDate : undefined}
+                        required={true}
                         onSelect={handleSelectDate}
                         initialFocus
                     />

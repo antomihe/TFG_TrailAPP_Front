@@ -9,11 +9,15 @@ import { useUserState } from '@/store/user/user.store';
 import { ProvincesComponent } from '@/components/ui/provinceInput';
 import { LocationComponent } from '@/components/ui/locationInput';
 import { DateInput } from '@/components/ui/dateInput';
+import MultipleDistanceInput from '@/components/ui/multiple-distance-input';
 
 const schema = Yup.object().shape({
     name: Yup.string().required('El nombre es obligatorio'),
     location: Yup.string().required('La localidad es obligatoria'),
     province: Yup.string().required('La provincia es obligatoria'),
+    distances: Yup.array()
+        .of(Yup.number().required('Al menos una distancia es obligatoria'))
+        .min(1, 'Al menos una distancia es obligatoria'),
     date: Yup.date()
         .required('La fecha es obligatoria')
         .test(
@@ -48,6 +52,7 @@ export default function NewEventForm() {
                     date: null,
                     province: province || '',
                     location: location || '',
+                    distances: [],
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
@@ -65,7 +70,7 @@ export default function NewEventForm() {
                     }
                 }}
             >
-                {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
+                {({ values, handleChange, handleBlur, touched, errors, setFieldValue, setFieldTouched }) => (
                     <Form>
                         <div className="space-y-2">
                             <div className="space-y-1">
@@ -86,14 +91,14 @@ export default function NewEventForm() {
                                 <Label htmlFor="date">Fecha</Label>
                                 <DateInput
                                     date={values.date}
+                                    fromDate={new Date()}
+                                    setFieldTouched={setFieldTouched}
                                     setFieldValue={setFieldValue}
                                 />
-                                {errors.date && (
+                                {touched.date && errors.date && (
                                     <p className="text-red-500 text-sm">{errors.date}</p>
                                 )}
                             </div>
-
-
 
                             <div className="space-y-1">
                                 <Label htmlFor="province">Provincia</Label>
@@ -101,6 +106,7 @@ export default function NewEventForm() {
                                     setError={setError}
                                     province={values.province}
                                     location={values.location}
+                                    setFieldTouched={setFieldTouched}
                                     setFieldValue={setFieldValue}
                                 />
 
@@ -117,6 +123,7 @@ export default function NewEventForm() {
                                             setError={setError}
                                             province={values.province}
                                             location={values.location}
+                                            setFieldTouched={setFieldTouched}
                                             setFieldValue={setFieldValue}
                                         />
                                         {touched.location && errors.location && (
@@ -125,6 +132,18 @@ export default function NewEventForm() {
                                     </div>
                                 )}
                             </React.Fragment>
+
+                            <div className="space-y-1">
+                                <MultipleDistanceInput
+                                    setFieldValue={setFieldValue}
+                                    setFieldTouched={setFieldTouched}
+                                    values={values.distances}
+                                />
+                                {touched.distances && errors.distances && (
+                                    <p className="text-red-500 text-sm">{errors.distances}</p>
+                                )}
+                            </div>
+
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
