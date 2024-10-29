@@ -35,6 +35,7 @@ export default function EditElementForm() {
     const [event, setEvent] = React.useState<any>(null);
     const [province, setProvince] = React.useState<string>('Cargando...');
     const [location, setLocation] = React.useState<string>('Cargando...');
+    const [distances, setDistances] = React.useState<string>('Cargando...');
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -44,6 +45,7 @@ export default function EditElementForm() {
                 const res = await api(userState.access_token).get(`events/${eventId}`);
                 setProvince(res.data.province);
                 setLocation(res.data.location);
+                setDistances(res.data.distances.join('km, ')+ 'km');
                 setEvent(res.data);
             } catch (error) {
                 setError('Error al cargar los datos');
@@ -98,7 +100,7 @@ export default function EditElementForm() {
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                 />
-                                {formik.touched.name && formik.errors.name && (
+                                {formik.errors.name && (
                                     <p className="text-red-500 text-sm">{formik.errors.name}</p>
                                 )}
                             </div>
@@ -107,6 +109,7 @@ export default function EditElementForm() {
                                 <DateInput
                                     date={formik.values.date}
                                     setFieldValue={formik.setFieldValue}
+                                    setFieldTouched={formik.setFieldTouched}
                                 />
                                 {formik.errors.date && (
                                     <p className="text-red-500 text-sm">{formik.errors.date}</p>
@@ -121,7 +124,7 @@ export default function EditElementForm() {
                                         placeholder='Provincia'
                                         value={province}
                                         disabled={true}
-                                    />                        
+                                    />
                                 </div>
 
                                 <div className="flex-1 space-y-1">
@@ -131,11 +134,18 @@ export default function EditElementForm() {
                                         placeholder="Localidad"
                                         value={location}
                                         disabled={true}
-                                    />                                    
+                                    />
                                 </div>
                             </div>
-
-
+                            <div className='space-x-1'>
+                                <Label htmlFor="distances">Distancias</Label>
+                                <Input
+                                    id="distances"
+                                    placeholder="Distancias"
+                                    value={distances}
+                                    disabled={true}
+                                />
+                            </div>
                         </div>
 
                         {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
