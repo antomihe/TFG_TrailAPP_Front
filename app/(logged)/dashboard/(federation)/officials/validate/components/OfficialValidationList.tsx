@@ -7,6 +7,7 @@ import api from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckIcon, TrashIcon } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Official {
     id: string;
@@ -91,6 +92,7 @@ export default function OfficialValidationList() {
     return (
         <div className="w-full px-4">
             <div className="max-w-4xl mx-auto overflow-x-auto">
+            <ScrollArea className='h-[500px] overflow-y-auto'>
                 <Table className="min-w-full">
                     <TableHeader>
                         <TableRow>
@@ -136,6 +138,7 @@ export default function OfficialValidationList() {
                         ))}
                     </TableBody>
                 </Table>
+            </ScrollArea>
             </div>
         </div>
     );
