@@ -34,6 +34,9 @@ import {
 } from "@tanstack/react-table";
 import { ArrowUpDown, TrashIcon, ChevronDown, BookUser } from 'lucide-react';
 import { dateFormatter } from '@/lib/utils';
+import { distance } from 'framer-motion';
+import { PaginationComponent } from '@/components/ui/pagination-component';
+import { Small } from '@/components/ui';
 
 interface Event {
     id: string;
@@ -42,7 +45,10 @@ interface Event {
     location: string;
     province: string;
     validated: boolean;
+    distances: number[];
 }
+
+const PAGE_SIZE = 4;
 
 export default function EventsJuryList() {
     const router = useRouter()
@@ -52,8 +58,6 @@ export default function EventsJuryList() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
-    const [pageSize, setPageSize] = useState(5);
     const [currentPage, setCurrentPage] = useState(0);
 
     useEffect(() => {
@@ -74,67 +78,49 @@ export default function EventsJuryList() {
         fetchEvents();
     }, [user.id]);
 
-    interface CustomSortingFnRow {
-        getValue: (key: string) => string;
-    }
-
-    const customSortingFn = (rowA: CustomSortingFnRow, rowB: CustomSortingFnRow): number => {
-        const dateA = new Date(rowA.getValue('date'));
-        const dateB = new Date(rowB.getValue('date'));
-        return dateA.getTime() - dateB.getTime();
-    };
-
     const columns: ColumnDef<Event>[] = [
         {
             accessorKey: "name",
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Nombre <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+            header: () => (
+                <div className="w-full text-center flex justify-center items-center">
+                    Nombre
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
             ),
-            cell: ({ row }) => <div>{row.getValue('name')}</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('name')}</div>,
             enableHiding: false,
         },
         {
             accessorKey: "date",
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Fecha <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+            header: () => (
+                <div className="w-full text-center flex justify-center items-center">
+                    Fecha
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
             ),
-            cell: ({ row }) => <div>{dateFormatter(row.getValue('date'))}</div>,
-            sortingFn: customSortingFn,
+            cell: ({ row }) => <div className="text-center">{dateFormatter(row.getValue('date'))}</div>,
         },
         {
             accessorKey: "location",
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Localidad <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+            header: () => (
+                <div className="w-full text-center flex justify-center items-center">
+                    Localidad
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
             ),
-            cell: ({ row }) => <div>{row.getValue('location')}</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('location')}</div>,
         },
         {
             accessorKey: "province",
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Provincia <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+            header: () => (
+                <div className="w-full text-center flex justify-center items-center">
+                    Provincia
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
             ),
-            cell: ({ row }) => <div>{row.getValue('province')}</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('province')}</div>,
         },
+
         {
             id: "actions",
             enableHiding: false,
@@ -167,27 +153,21 @@ export default function EventsJuryList() {
         getFilteredRowModel: getFilteredRowModel(),
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
         state: {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
+            pagination: {
+                pageSize: PAGE_SIZE,
+                pageIndex: currentPage,
+            },
         },
-        manualPagination: false,
-        pageCount: Math.ceil(events.length / pageSize),
     });
 
-    const paginatedEvents = table.getRowModel().rows.slice(
-        currentPage * pageSize,
-        (currentPage + 1) * pageSize
-    );
-
-    const hasNextPage = (currentPage + 1) * pageSize < events.length;
-    const hasPreviousPage = currentPage > 0;
+    const paginatedEvents = table.getRowModel().rows;
 
     const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage);
+        setCurrentPage(newPage - 1);
     };
 
     if (loading) {
@@ -200,7 +180,7 @@ export default function EventsJuryList() {
 
     return (
         <div className="w-full">
-            <div className="flex items-center justify-between py-4 space-x-4">
+            <div className="flex items-center justify-between py-4 space-x-4 mx-2">
                 <Input
                     placeholder="Filtrar por nombre de evento..."
                     value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -247,14 +227,21 @@ export default function EventsJuryList() {
                     {table.getHeaderGroups().map(headerGroup => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
-                                <TableHead key={header.id} className="w-1/5">
-                                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                <TableHead key={header.id} className='w-1/6'>
+                                    {header.isPlaceholder || header.id === 'actions' ? null : (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            className={"w-full"}
+                                        >
+                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                        </Button>
+                                    )}
                                 </TableHead>
                             ))}
                         </TableRow>
                     ))}
                 </TableHeader>
-
                 <TableBody>
                     {paginatedEvents.length > 0 ? (
                         paginatedEvents.map(row => (
@@ -274,17 +261,15 @@ export default function EventsJuryList() {
                 </TableBody>
             </Table>
 
-            <div className="flex items-center justify-center mt-3">
-                <Button onClick={() => handlePageChange(currentPage - 1)} disabled={!hasPreviousPage}>
-                    Anterior
-                </Button>
-                <div className='mx-5'>
-                    Página {currentPage + 1} de {Math.ceil(events.length / pageSize)}
-                </div>
-                <Button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage}>
-                    Siguiente
-                </Button>
-            </div>
+            {table.getRowCount() > 0 && (
+                <Small className='text-center mt-4 font-medium'>Mostrando {table.getRowCount()} elementos</Small>
+            )}
+            <PaginationComponent
+                totalPages={table.getPageCount()}
+                currentPage={currentPage + 1}
+                handlePageChange={handlePageChange}
+                className='mt-2'
+            />
         </div>
     );
 }
