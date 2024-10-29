@@ -3,6 +3,8 @@
 import { Map, GeoJson, GeoJsonFeature } from "pigeon-maps";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { Small } from "./typography";
 
 type Props = {
   coordinates: [number, number]; // [latitude, longitude]
@@ -34,6 +36,16 @@ function MapHeader({ coordinates, zoom = 10 }: Props) {
     return null;
   }
 
+  if (coordinates[0] === 0 && coordinates[1] === 0) return (
+    <div className="flex flex-col items-center justify-center h-full">
+      <div style={{ opacity: 0.8 }}>
+      <Image src="/map-not-avaible.png" alt="Mapa no disponible" width={120} height={60} />
+      </div>
+      <Small className="text-muted text-center mt-2">Ubicación no disponible</Small>
+    </div>
+      
+  )
+
   return (
     <Map
       defaultCenter={[+coordinates[0], +coordinates[1]]}
@@ -42,7 +54,7 @@ function MapHeader({ coordinates, zoom = 10 }: Props) {
     >
       <GeoJson
         svgAttributes={{
-          fill: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(204, 204, 204, 0.7)", 
+          fill: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(204, 204, 204, 0.7)",
           strokeWidth: "1",
           stroke: "white",
           r: "30",
