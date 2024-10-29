@@ -62,5 +62,10 @@ export const OfficialLinks: MenuItemList = [
 
 
 export const AthleteLinks: MenuItemList = [
+    {
+        title: "Eventos",
+        description: "Inscripción a eventos",
+        link: "dashboard/events/enroll"
+    }
 
 ];

@@ -13,7 +13,7 @@ export function dateToText(date: Date): string {
   });
 }
 
-export function dateFormatter(date: Date): string {
+export function dateFormatter(date: Date | string): string {
   return new Date(date).toLocaleDateString('es-ES', {
     day: '2-digit',
     month: '2-digit',
