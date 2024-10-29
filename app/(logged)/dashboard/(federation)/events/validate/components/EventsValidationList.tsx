@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckIcon, TrashIcon } from 'lucide-react';
 import { dateFormatter } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Event {
     id: string;
@@ -15,6 +16,7 @@ interface Event {
     date: string;
     location: string;
     province: string;
+    distances: number[];
     validated: boolean;
 }
 
@@ -39,7 +41,7 @@ export default function EventsValidationList() {
                 const res = await api(user.access_token).get(`events/unvalidated/${federationCode}`);
                 for (let i = 0; i < res.data.length; i++) {
                     res.data[i].validated = false;
-                }   
+                }
                 setEvents(res.data);
             } catch (err) {
                 console.error(err);
@@ -93,52 +95,61 @@ export default function EventsValidationList() {
 
     return (
         <div className="w-full px-4">
-            <div className="max-w-4xl mx-auto overflow-x-auto">
-                <Table className="min-w-full">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Ubicación</TableHead>
-                            <TableHead>Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {events.map((event) => (
-                            <TableRow key={event.id}>
-                                <TableCell>{event.name}</TableCell>
-                                <TableCell>{dateFormatter(new Date(event.date))}</TableCell>
-                                <TableCell>{`${event.location} - ${event.province}`}</TableCell>
-                                <TableCell>
-                                    <div className="flex space-x-2">
-                                        {!event.validated ? (
-                                            <>
-                                                <Button 
-                                                    onClick={() => handleValidate(event.id)} 
-                                                    variant="outline" 
-                                                    className="flex items-center" 
-                                                    disabled={sending}
-                                                >
-                                                    <CheckIcon className="mr-2 h-4 w-4" /> Validar
-                                                </Button>
-                                                <Button 
-                                                    onClick={() => handleDelete(event.id)} 
-                                                    variant="destructive" 
-                                                    className="flex items-center" 
-                                                    disabled={sending}
-                                                >
-                                                    <TrashIcon className="mr-2 h-4 w-4" /> Borrar
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            'Validado'
-                                        )}
-                                    </div>
-                                </TableCell>
+            <div className="max-w-5xl mx-auto overflow-x-auto">
+                <ScrollArea className='h-[500px] overflow-y-auto'>
+                    <Table className="min-w-full">
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Fecha</TableHead>
+                                <TableHead>Ubicación</TableHead>
+                                <TableHead>Distancias</TableHead>
+                                <TableHead>Acciones</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+
+                        <TableBody>
+                            {events.map((event) => (
+                                <TableRow key={event.id}>
+                                    <TableCell>{event.name}</TableCell>
+                                    <TableCell>{dateFormatter(new Date(event.date))}</TableCell>
+                                    <TableCell>{`${event.location} - ${event.province}`}</TableCell>
+                                    <TableCell>
+                                        {event.distances.map((distance, index) => (
+                                            <span key={index}>{distance}{index < event.distances.length - 1 ? 'km , ' : 'km'}</span>
+                                        ))}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex space-x-2">
+                                            {!event.validated ? (
+                                                <>
+                                                    <Button
+                                                        onClick={() => handleValidate(event.id)}
+                                                        variant="outline"
+                                                        className="flex items-center"
+                                                        disabled={sending}
+                                                    >
+                                                        <CheckIcon className="mr-2 h-4 w-4" /> Validar
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => handleDelete(event.id)}
+                                                        variant="destructive"
+                                                        className="flex items-center"
+                                                        disabled={sending}
+                                                    >
+                                                        <TrashIcon className="mr-2 h-4 w-4" /> Borrar
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                'Validado'
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </ScrollArea>
             </div>
         </div>
     );
