@@ -19,50 +19,82 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
     const handlePreviousPage = () => handlePageChange(Math.max(currentPage - 1, 1));
     const handleNextPage = () => handlePageChange(Math.min(currentPage + 1, totalPages));
 
-    const itemsPerPage = 5;
-
     const getPaginationItems = () => {
         let items: (number | JSX.Element)[] = [];
 
         if (totalPages <= 1) return [];
 
-        // Siempre mostrar botones de navegación
+        // Botón para página anterior
         items.push(
             <PaginationItem key="prev">
                 <PaginationPrevious onClick={handlePreviousPage} href={""} />
             </PaginationItem>
         );
 
-
-        // Calcular el rango de páginas a mostrar
-        const startPage = Math.max(2, currentPage - Math.floor(itemsPerPage / 2));
-        const endPage = Math.min(totalPages - 1, startPage + itemsPerPage - 2); // -2 porque ya hay la primera página
-
-        // Ajustar el rango si está cerca de los límites
-        const adjustedStartPage = Math.max(2, endPage - itemsPerPage + 2);
-
-
         // Siempre mostrar la primera página
-        items.push(1);
+        items.push(
+            <PaginationItem key={1}>
+                <PaginationLink onClick={() => handlePageChange(1)} isActive={currentPage === 1} href={""}>
+                    1
+                </PaginationLink>
+            </PaginationItem>
+        );
 
-        // Mostrar elipsis al inicio si es necesario
-        if (adjustedStartPage > 2) {
-            items.push(<PaginationEllipsis key="ellipsis-start" />);
+        // Mostrar las páginas cercanas al inicio (1, 2, 3, 4, 5, ...)
+        if (currentPage <= 4) {
+            for (let page = 2; page <= Math.min(5, totalPages - 1); page++) {
+                items.push(
+                    <PaginationItem key={page}>
+                        <PaginationLink onClick={() => handlePageChange(page)} isActive={page === currentPage} href={""}>
+                            {page}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+            if (totalPages > 6) items.push(<PaginationEllipsis key="ellipsis-end" />);
         }
 
-        // Mostrar páginas desde el rango ajustado
-        for (let page = adjustedStartPage; page <= endPage; page++) {
-            items.push(page);
+        // Mostrar las páginas cercanas al final (..., 6, 7, 8, 9, 10)
+        else if (currentPage > totalPages - 4) {
+            items.push(<PaginationEllipsis key="ellipsis-start" />);
+            for (let page = totalPages - 4; page < totalPages; page++) {
+                items.push(
+                    <PaginationItem key={page}>
+                        <PaginationLink onClick={() => handlePageChange(page)} isActive={page === currentPage} href={""}>
+                            {page}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+        }
+
+        // Mostrar páginas intermedias con elipsis al inicio y al final
+        else {
+            items.push(<PaginationEllipsis key="ellipsis-start" />);
+            for (let page = currentPage - 1; page <= currentPage + 1; page++) {
+                items.push(
+                    <PaginationItem key={page}>
+                        <PaginationLink onClick={() => handlePageChange(page)} isActive={page === currentPage} href={""}>
+                            {page}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+            items.push(<PaginationEllipsis key="ellipsis-end" />);
         }
 
         // Siempre mostrar la última página
         if (totalPages > 1) {
-            if (endPage < totalPages - 1) {
-                items.push(<PaginationEllipsis key="ellipsis-end" />);
-            }
-            items.push(totalPages);
+            items.push(
+                <PaginationItem key={totalPages}>
+                    <PaginationLink onClick={() => handlePageChange(totalPages)} isActive={currentPage === totalPages} href={""}>
+                        {totalPages}
+                    </PaginationLink>
+                </PaginationItem>
+            );
         }
 
+        // Botón para página siguiente
         items.push(
             <PaginationItem key="next">
                 <PaginationNext onClick={handleNextPage} href={""} />
@@ -83,11 +115,13 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
                             {typeof page === "number" ? (
                                 <PaginationLink
                                     onClick={() => handlePageChange(page)}
-                                    isActive={page === currentPage} href={""}                                >
+                                    isActive={page === currentPage}
+                                    href={""}
+                                >
                                     {page}
                                 </PaginationLink>
                             ) : (
-                                page // Muestra el componente de elipsis
+                                page 
                             )}
                         </PaginationItem>
                     ))}

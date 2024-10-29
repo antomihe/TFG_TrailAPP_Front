@@ -55,7 +55,7 @@ export default function NewFederationForm() {
                         const res = await api(userState.access_token).post(`/users/federation`, values);
                         setSubmited('¡Éxito! Federación creada correctamente');
                         resetForm();
-                        setRegionKey((prevKey) => prevKey + 1); // Actualizar la key del componente
+                        setRegionKey((prevKey) => prevKey + 1); 
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
                         if (errorMessage) setError(errorMessage);
@@ -89,8 +89,9 @@ export default function NewFederationForm() {
                                         region={formik.values.region}
                                         setError={setError}
                                         setFieldValue={formik.setFieldValue}
+                                        setFieldTouched={formik.setFieldTouched}
                                     />
-                                    {formik.errors.region && (
+                                    {formik.touched.region && formik.errors.region && (
                                         <p className="text-red-500 text-sm">{formik.errors.region}</p>
                                     )}
                                 </div>

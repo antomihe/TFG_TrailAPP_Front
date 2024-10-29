@@ -21,9 +21,10 @@ type Props = {
     setError: (error: string) => void;
     region: string;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
+    setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
 }
 
-export function RegionsComponent({ setError, region, setFieldValue }: Props) {
+export function RegionsComponent({ setError, region, setFieldValue, setFieldTouched}: Props) {
     const [open, setOpen] = React.useState(false);
     const [regions, setRegions] = React.useState<{ label: string; value: string }[]>([]);
 
@@ -59,7 +60,10 @@ export function RegionsComponent({ setError, region, setFieldValue }: Props) {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent
+             className="w-[200px] p-0"
+             onBlur={() => setFieldTouched('region', true)}
+             >
                 <Command>
                     <CommandInput placeholder="Buscar comunidad autónoma..." />
                     <CommandList>
