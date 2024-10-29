@@ -11,6 +11,7 @@ import { LogoIcon as LogoIconComponent, ThemeIconButton } from "@/components/the
 import { useUserState } from "@/store/user/user.store";
 import { useRouter } from 'next/navigation'
 import { Footer } from "@/components/layout/footer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export function Dashboard({ children }: PropsWithChildren) {
@@ -119,12 +120,18 @@ const mainLinks = [
 ];
 
 const InnerDashboard = ({ children }: PropsWithChildren) => (
-  <div className="flex flex-1 bg-inherit">
-    <div className={cn("pt-2 pr-2 pl-2 md:pt-10 md:pr-10 md:pl-10 rounded-tl-2xl border flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto min-h-screen")}>
-      <div className="flex-grow">{children}</div>
-      <Footer />
+  <div className="flex flex-col h-screen bg-inherit w-full">
+    <div className="pr-1 pl-2 h-screen md:pr-2 md:pl-10 md:pt-2 md:pb-2 rounded-tl-2xl border ">
+      <ScrollArea className="flex-1 pr-1 pt-2 md:pr-8 md:pt-8 w-full h-full overflow-y-auto">
+        <div className={cn("flex flex-col gap-2 h-full w-full")}>
+          <div className="flex-grow">{children}</div>
+          <Footer />
+        </div>
+      </ScrollArea>
     </div>
   </div>
+
+
 );
 
 export default Dashboard;
