@@ -40,8 +40,21 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
             </PaginationItem>
         );
 
+        // Mostrar páginas intermedias sin elipsis al inicio y al final si hay pocas páginas
+        if (totalPages <= 6) {
+            for (let page = 2; page < totalPages; page++) {
+                items.push(
+                    <PaginationItem key={page}>
+                        <PaginationLink onClick={() => handlePageChange(page)} isActive={page === currentPage} href={""}>
+                            {page}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+        }
+
         // Mostrar las páginas cercanas al inicio (1, 2, 3, 4, 5, ...)
-        if (currentPage <= 4) {
+        else if (currentPage <= 4) {
             for (let page = 2; page <= Math.min(5, totalPages - 1); page++) {
                 items.push(
                     <PaginationItem key={page}>
@@ -121,7 +134,7 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
                                     {page}
                                 </PaginationLink>
                             ) : (
-                                page 
+                                page
                             )}
                         </PaginationItem>
                     ))}
