@@ -36,6 +36,7 @@ export default function EditElementForm() {
     const [province, setProvince] = React.useState<string>('Cargando...');
     const [location, setLocation] = React.useState<string>('Cargando...');
     const [distances, setDistances] = React.useState<string>('Cargando...');
+    const [organizer, setOrganizer] = React.useState<any>({ email: 'Cargando...', name: 'Cargando...', });
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -45,7 +46,8 @@ export default function EditElementForm() {
                 const res = await api(userState.access_token).get(`events/${eventId}`);
                 setProvince(res.data.province);
                 setLocation(res.data.location);
-                setDistances(res.data.distances.join('km, ')+ 'km');
+                setDistances(res.data.distances.join('km, ') + 'km');
+                setOrganizer(res.data.organizer);
                 setEvent(res.data);
             } catch (error) {
                 setError('Error al cargar los datos');
@@ -143,6 +145,24 @@ export default function EditElementForm() {
                                     id="distances"
                                     placeholder="Distancias"
                                     value={distances}
+                                    disabled={true}
+                                />
+                            </div>
+                            <div className='space-x-1'>
+                                <Label htmlFor="organizerName">Organizador</Label>
+                                <Input
+                                    id="organizerName"
+                                    placeholder="Organizador"
+                                    value={organizer.name}
+                                    disabled={true}
+                                />
+                            </div>
+                            <div className='space-x-1'>
+                                <Label htmlFor="organizerEmail">Correo del organizador</Label>
+                                <Input
+                                    id="organizerEmail"
+                                    placeholder="Correo del organizador"
+                                    value={organizer.email}
                                     disabled={true}
                                 />
                             </div>
