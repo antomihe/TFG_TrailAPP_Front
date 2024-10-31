@@ -4,7 +4,7 @@ import React from 'react';
 import { Label, Input } from '@/components/ui'
 import { Button } from '@/components/ui';
 
-import { Formik, Form } from 'formik';
+import { Formik, Form, replace } from 'formik';
 
 import api from '@/config/api';
 
@@ -139,6 +139,7 @@ export default function AthleteForm() {
                                         placeholder="79883941L"
                                         value={formik.values.idNumber}
                                         onChange={formik.handleChange}
+                                        onInput={e => (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.toUpperCase()}
                                         onBlur={formik.handleBlur}
                                     />
                                     {formik.touched.idNumber && formik.errors.idNumber && (
@@ -151,6 +152,17 @@ export default function AthleteForm() {
                                         id="dateOfBirth"
                                         placeholder="01/02/1992"
                                         value={formik.values.dateOfBirth}
+                                        onInput={e => {
+                                            const input = e.target as HTMLInputElement;
+                                            input.value = input.value
+                                                .replace(/[^0-9/]/g, '') 
+                                                .replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, (match, p1, p2, p3) => {
+                                                    const day = p1.padStart(2, '0');
+                                                    const month = p2.padStart(2, '0');
+                                                    return `${day}/${month}/${p3}`;
+                                                })
+                                                .slice(0, 10);
+                                        }}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                     />

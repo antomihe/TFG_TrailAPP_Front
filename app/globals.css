@@ -16,7 +16,7 @@
     --input: 0 0% 90%;
     --primary: 0 0% 40%;
     --primary-foreground: 0 0% 90%;
-    --secondary: 0 0% 70%;
+    --secondary: 0 0% 50%;
     --secondary-foreground: 0 0% 30%;
     --accent: 0 0% 70%;
     --accent-foreground: 0 0% 30%;
@@ -44,7 +44,7 @@
     --input: 215 27.9% 16.9%;
     --primary: 253 91% 58%;
     --primary-foreground: 253 91% 98%;
-    --secondary: 253 7% 9%;
+    --secondary: 253 7% 85%;;
     --secondary-foreground: 253 7% 69%;
     --accent: 240 76% 11%;
     --accent-foreground: 253 13% 74%;

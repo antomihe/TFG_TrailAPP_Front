@@ -30,7 +30,7 @@ export const Header = () => {
                     </Link>
                     <div className="grid gap-2 py-6">
                         <NavItem href="/" label="Home" />
-                        <NavItem href="#" label="Eventos" />
+                        <NavItem href="/events" label="Eventos" />
                     </div>
                 </SheetContent>
             </Sheet>
@@ -42,7 +42,7 @@ export const Header = () => {
             <NavigationMenu className="hidden lg:flex">
                 <NavigationMenuList>
                     <NavItem href="/" label="Home" />
-                    <NavItem href="#" label="Eventos" />
+                    <NavItem href="/events" label="Eventos" />
                 </NavigationMenuList>
             </NavigationMenu>
 

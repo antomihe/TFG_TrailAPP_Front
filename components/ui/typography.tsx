@@ -31,6 +31,15 @@ const H3: React.FC<typographyProps> = ({ className, children }) => {
     )
 }
 
+const H4: React.FC<typographyProps> = ({ className, children }) => {
+    return (
+        <h4 className={`scroll-m-20 text-xl font-semibold tracking-tight ${className}`}>
+            {children}
+        </h4>
+    )
+}
+
+
 const P: React.FC<typographyProps> = ({ className, children }) => {
 
     return (
@@ -91,4 +100,4 @@ const InlineCode: React.FC<typographyProps> = ({ className, children }) => {
 
 
 
-export { H1, H2, H3, P, Blockquote, Lead, Large, Small, Muted, InlineCode}
+export { H1, H2, H3, H4, P, Blockquote, Lead, Large, Small, Muted, InlineCode }

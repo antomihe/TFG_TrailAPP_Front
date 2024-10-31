@@ -8,9 +8,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { LogoIcon as LogoIconComponent, ThemeIconButton } from "@/components/theme/";
-import { YearComponent } from "@/components/ui/";
 import { useUserState } from "@/store/user/user.store";
 import { useRouter } from 'next/navigation'
+import { Footer } from "@/components/layout/footer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export function Dashboard({ children }: PropsWithChildren) {
@@ -39,31 +40,31 @@ export function Dashboard({ children }: PropsWithChildren) {
               ))}
             </div>
           </div>
-            <div className="flex justify-between">
-            
+          <div className="flex justify-between">
+
             <SidebarLink
               link={{
-              label: "Logout",
-              href: "#",
-              icon: (
-                <Image
-                src="/defaultAvatar.png"
-                className="h-7 w-7 flex-shrink-0 rounded-full hover:text-primary"
-                width={50}
-                height={50}
-                alt="Avatar"
-                />
-              ),
+                label: "Logout",
+                href: "#",
+                icon: (
+                  <Image
+                    src="/defaultAvatar.png"
+                    className="h-7 w-7 flex-shrink-0 rounded-full hover:text-primary"
+                    width={50}
+                    height={50}
+                    alt="Avatar"
+                  />
+                ),
               }}
               onClick={() => {
-              useUserState.getState().logout();
-              setShouldRedirect(true);
+                useUserState.getState().logout();
+                setShouldRedirect(true);
               }}
-              />
-              {isClient && open && (
-                <ThemeIconButton className="hover:text-primary hover:bg-transparent flex-shrink-0" />
-              )}
-            </div>
+            />
+            {isClient && open && (
+              <ThemeIconButton className="hover:text-primary hover:bg-transparent flex-shrink-0" />
+            )}
+          </div>
         </SidebarBody>
       </Sidebar>
 
@@ -119,14 +120,18 @@ const mainLinks = [
 ];
 
 const InnerDashboard = ({ children }: PropsWithChildren) => (
-  <div className="flex flex-1 bg-inherit">
-    <div className={cn("p-2 md:p-10 rounded-tl-2xl border flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto min-h-screen")}>
-      <div className="flex-grow">{children}</div>
-      <footer className="flex h-20 w-full shrink-0 items-center justify-center px-4 md:px-6">
-        <p className="text-sm font-semibold">© <YearComponent /> - TRAILAPP</p>
-      </footer>
+  <div className="flex flex-col h-screen bg-inherit w-full">
+    <div className="pr-1 pl-2 h-screen md:pr-2 md:pl-10 md:pt-2 md:pb-2 rounded-tl-2xl border ">
+      <ScrollArea className="flex-1 pr-1 pt-2 md:pr-8 md:pt-8 w-full h-full overflow-y-auto">
+        <div className={cn("flex flex-col gap-2 h-full w-full")}>
+          <div className="flex-grow">{children}</div>
+          <Footer />
+        </div>
+      </ScrollArea>
     </div>
   </div>
+
+
 );
 
 export default Dashboard;

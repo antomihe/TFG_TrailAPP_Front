@@ -7,7 +7,7 @@ import RoleEnum from '@/enums/Roles.enum';
 const NationalFederationLayout = ({ children }: { children: ReactNode }) => {
     const RoleWrapper = RoleRedirect(
         ({ children }: { children: ReactNode }) => <>{children}</>,
-        RoleEnum.NATIONALFEDERATION,
+        RoleEnum.FEDERATION,
         { component: ({ children }: { children: ReactNode }) => <>{children}</>, role: RoleEnum.FEDERATION }
     );
 
