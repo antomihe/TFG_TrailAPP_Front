@@ -41,7 +41,7 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
         );
 
         // Mostrar páginas intermedias sin elipsis al inicio y al final si hay pocas páginas
-        if (totalPages <= 6) {
+        if (totalPages <= 7) {
             for (let page = 2; page < totalPages; page++) {
                 items.push(
                     <PaginationItem key={page}>
@@ -113,7 +113,6 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
                 <PaginationNext onClick={handleNextPage} href={""} />
             </PaginationItem>
         );
-
         return items;
     };
 
