@@ -57,7 +57,11 @@ export const OrganizerLinks: MenuItemList = [
 ];
 
 export const OfficialLinks: MenuItemList = [
-
+    {
+        title: "Descalificaciones",
+        description: "Enviar parte de descalificacion",
+        link: "dashboard/new/disqualification",
+    },
 ];
 
 
