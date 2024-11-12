@@ -78,7 +78,7 @@ export default function JuryForm() {
                 const resOfficials = await api(user.access_token).get(`users/official/validated`);
                 setOfficials(resOfficials.data);
 
-                const resJury = await api(user.access_token).get(`/events/${params.eventId}/jury`);
+                const resJury = await api(user.access_token).get(`/events/jury/${params.eventId}`);
                 const juryData = resJury.data;
 
                 const orderedJury = [...juryData].sort((a, b) => b.isReferee - a.isReferee);
@@ -159,7 +159,7 @@ export default function JuryForm() {
                         };
 
                         const eventId = params.eventId;
-                        await api(user.access_token).post(`events/${eventId}/jury`, req);
+                        await api(user.access_token).post(`events/jury/${eventId}`, req);
 
                         const remainingJudges = values.judges.filter(judge => !judge.erase);
                         setJury(remainingJudges);
