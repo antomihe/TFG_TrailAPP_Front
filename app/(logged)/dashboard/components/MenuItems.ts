@@ -41,7 +41,7 @@ export const FederationLinks: MenuItemList = [
         link: "dashboard/events/manage",
     },
     {
-        title: "Eventos",
+        title: "Jurado",
         description: "Asignación de jueces",
         link: "dashboard/events/jury",
     },
@@ -61,6 +61,11 @@ export const OfficialLinks: MenuItemList = [
         title: "Descalificaciones",
         description: "Enviar parte de descalificacion",
         link: "dashboard/new/disqualification",
+    },
+    {
+        title: "Descalificaciones JA",
+        description: "Recibir parte de descalificacion",
+        link: "dashboard/disqualifications",
     },
 ];
 

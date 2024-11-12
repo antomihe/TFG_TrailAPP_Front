@@ -15,7 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 const schema = Yup.object().shape({
-    reason: Yup.string().required('Este campo es requerido'),
+    reason: Yup.string().required('Este campo es requerido').max(50, 'Máximo 50 caracteres'),
+    description: Yup.string().required('Este campo es requerido'),
     athlete: Yup.string().required('Este campo es requerido'),
 });
 
@@ -82,6 +83,7 @@ export default function NewDisqualificationReportForm() {
                 enableReinitialize
                 initialValues={{
                     reason: '',
+                    description: '',
                     athlete: '',
                 }}
                 validationSchema={schema}
@@ -94,6 +96,7 @@ export default function NewDisqualificationReportForm() {
                             athleteId: athletes.find(athlete => athlete.displayName === values.athlete)?.id,
                             eventId: event.id,
                             reason: values.reason,
+                            description: values.description,
                         };
                         const res = await api(userState.access_token).post(`/events/disqualification`, request);
                         setSubmited('¡Éxito! Parte de descalificación enviado');
@@ -184,19 +187,32 @@ export default function NewDisqualificationReportForm() {
                                     )}
                                 </div>
                                 <div className="space-y-1">
-
                                     <Label htmlFor="reason">Razón</Label>
-                                    <Textarea
+                                    <Input
                                         id="reason"
                                         placeholder="Razón de la descalificación"
                                         value={formik.values.reason}
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
-                                        rows={4}
                                     />
 
                                     {formik.touched.reason && formik.errors.reason && (
                                         <p className="text-red-500 text-sm">{formik.errors.reason}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="description">Descripción</Label>
+                                    <Textarea
+                                        id="description"
+                                        placeholder="Descripción de la descalificación"
+                                        value={formik.values.description}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        rows={4}
+                                    />
+
+                                    {formik.touched.description && formik.errors.description && (
+                                        <p className="text-red-500 text-sm">{formik.errors.description}</p>
                                     )}
                                 </div>
                             </div>
