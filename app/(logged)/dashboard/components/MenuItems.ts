@@ -72,6 +72,11 @@ export const OfficialLinks: MenuItemList = [
         description: "Recibir parte de descalificacion",
         link: "dashboard/disqualifications",
     },
+    {
+        title: "Control de material",
+        description: "Asignación de controles de material",
+        link: "dashboard/events/control",
+    },
 ];
 
 

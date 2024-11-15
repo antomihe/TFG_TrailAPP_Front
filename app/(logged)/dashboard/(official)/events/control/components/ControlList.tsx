@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,6 +6,12 @@ import { useUserState } from '@/store/user/user.store';
 import api from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     Table,
     TableBody,
@@ -16,50 +22,51 @@ import {
 } from "@/components/ui/table";
 import {
     ColumnDef,
+    ColumnFiltersState,
     SortingState,
     VisibilityState,
     flexRender,
     getCoreRowModel,
+    getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { AlertTriangle, ArrowUpDown, ChevronDown, Flag, FlagOff } from 'lucide-react';
-import { timeFormatter } from '@/lib/utils';
+import { ChevronDown, ArrowUpDown, Wrench, AlertTriangle } from 'lucide-react';
+import { dateFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
 import { Small } from '@/components/ui';
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface Event {
+    id: string;
+    name: string;
+    date: string;
+    location: string;
+    province: string;
+    validated: boolean;
+    distances: number[];
+}
 
 const PAGE_SIZE = 4;
 
-export default function DisqualificationList() {
+export default function ControlList() {
     const router = useRouter();
     const user = useUserState().user;
-    const [filterInput, setFilterInput] = useState("");
+    const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [errorLoading, setErrorLoading] = useState<string | null>(null);
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [currentPage, setCurrentPage] = useState(0);
-    const [disqualifications, setDisqualifications] = useState<Disqualification[]>([]);
-    const [isReferee, setIsReferee] = useState<boolean>(false)
 
-    // Función para cargar eventos y descalificaciones
     useEffect(() => {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const resEvent = await api(user.access_token).get(`events/jury/today`);
-                const eventId = resEvent.data.id;
-                setIsReferee(resEvent.data.isReferee);
-                const res = await api(user.access_token).get(`events/disqualification/${eventId}`);
-                setDisqualifications(res.data);
+                const res = await api(user.access_token).get(`events/jury/eventsByReferee/${user.id}`);
+                setEvents(res.data);
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;
                 setErrorLoading(errorMessage || 'Error desconocido');
@@ -67,88 +74,100 @@ export default function DisqualificationList() {
                 setLoading(false);
             }
         };
+
         fetchEvents();
     }, [user.id]);
 
-    // Columnas de la tabla
-    const columns: ColumnDef<Disqualification>[] = [
+    const columns: ColumnDef<Event>[] = [
         {
-            accessorKey: "athlete",
+            accessorKey: "name",
             header: () => (
-                <div className="text-center flex justify-center items-center">
-                    Atleta <ArrowUpDown className="ml-2 h-4 w-4" />
+                <div className="w-full text-center flex justify-center items-center">
+                    Nombre
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
             ),
-            cell: ({ row }) => <div className="text-center">{row.original.athlete.displayName}</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('name')}</div>,
             enableHiding: false,
         },
         {
-            accessorKey: "official",
+            accessorKey: "date",
             header: () => (
-                <div className="text-center flex justify-center items-center">
-                    Juez <ArrowUpDown className="ml-2 h-4 w-4" />
+                <div className="w-full text-center flex justify-center items-center">
+                    Fecha
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
             ),
-            cell: ({ row }) => <div className='text-center'>{row.original.official.displayName}</div>,
-            enableHiding: true,
+            cell: ({ row }) => <div className="text-center">{dateFormatter(row.getValue('date'))}</div>,
         },
         {
-            accessorKey: "reason",
+            accessorKey: "location",
             header: () => (
-                <div className="text-center flex justify-center items-center">
-                    Razón <ArrowUpDown className="ml-2 h-4 w-4" />
+                <div className="w-full text-center flex justify-center items-center">
+                    Localidad
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
             ),
-            cell: ({ row }) => <div className="text-center">{row.original.reason}</div>,
-            enableHiding: true,
+            cell: ({ row }) => <div className="text-center">{row.getValue('location')}</div>,
         },
         {
-            accessorKey: "time",
+            accessorKey: "province",
             header: () => (
-                <div className="text-center flex justify-center items-center">
-                    Hora <ArrowUpDown className="ml-2 h-4 w-4" />
+                <div className="w-full text-center flex justify-center items-center">
+                    Provincia
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
             ),
-            cell: ({ row }) => <div className="text-center">{timeFormatter(row.original.time)}</div >,
-            enableHiding: true,
+            cell: ({ row }) => <div className="text-center">{row.getValue('province')}</div>,
+        },
+        {
+            accessorKey: "distances",
+            header: () => (
+                <div className="w-full text-center">Distancias</div>
+            ),
+            enableSorting: false,
+            cell: ({ row }) => (
+                <div className="text-center">
+                    {(row.getValue('distances') as number[]).map((element: number) => `${element}km`).join(', ')}
+                </div>
+            ),
         },
         {
             id: "actions",
             enableHiding: false,
-            cell: ({ row }) => (
-                <Button
-                    onClick={() => router.push(`/dashboard/disqualifications/${row.original.id}`)}
-                    variant="outline"
-                    className="flex items-center bg-transparent border-primary"
-                    onMouseEnter={() => router.prefetch(`/dashboard/disqualifications/${row.original.id}`)}
-                    disabled={row.original.reviewedByReferee}
-                >
-                    {row.original.reviewedByReferee ? <FlagOff className="mr-2 h-4 w-4" /> : <Flag className="mr-2 h-4 w-4" />}
-                    {row.original.reviewedByReferee ? 'Descalificación resuelta' : 'Resolver descalificación'}
-                </Button>
-            ),
+            enableSorting: false,
+            cell: ({ row }) => {
+                const event = row.original;
+                return (
+                    <div className="flex space-x-2 justify-end">
+                        <Button
+                            onClick={() => router.push(`/dashboard/new/control/${event.id}`)}
+                            variant="outline"
+                            className="flex items-center bg-transparent border-primary"
+                            onMouseEnter={() => router.prefetch(`/dashboard/new/control/${event.id}`)}
+                        >
+                            <Wrench className="mr-2 h-4 w-4" /> Puntos de control
+                        </Button>
+                    </div>
+                );
+            },
         },
     ];
 
-    const filteredData = React.useMemo(() => {
-        const searchValue = filterInput.toLowerCase();
-        return disqualifications.filter((row) =>
-            row.athlete.displayName.toLowerCase().includes(searchValue) ||
-            row.official.displayName.toLowerCase().includes(searchValue)
-        );
-    }, [filterInput, disqualifications]);
-
 
     const table = useReactTable({
-        data: filteredData,
+        data: events,
         columns,
         onSortingChange: setSorting,
-        onColumnVisibilityChange: setColumnVisibility,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
         state: {
             sorting,
+            columnFilters,
             columnVisibility,
             pagination: {
                 pageSize: PAGE_SIZE,
@@ -156,6 +175,13 @@ export default function DisqualificationList() {
             },
         },
     });
+
+    const paginatedEvents = table.getRowModel().rows;
+
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage - 1);
+
+    };
 
     if (loading) {
         return <div className="text-center pt-5">Cargando...</div>;
@@ -174,41 +200,26 @@ export default function DisqualificationList() {
         );
     }
 
-    if (disqualifications.length === 0) {
-        if (errorLoading) {
-            return (
-                <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                    <Alert className="flex items-center space-x-2 p-5">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                        <AlertDescription>
-                            No hay eventos asociados a tu federación
-                        </AlertDescription>
-                    </Alert>
-                </div>
-            );
-        }
-    }
-
-    if (!isReferee) {
+    if (events.length === 0) {
         return (
             <div className="flex items-center justify-center max-w-xl mx-auto p-4">
                 <Alert className="flex items-center space-x-2 p-5">
                     <AlertTriangle className="h-4 w-4 text-yellow-500" />
                     <AlertDescription>
-                        <div className="text-center pt-5">No eres Juez Árbitro de la carrera actual</div>
+                        No hay eventos futuros como Juez Árbitro asociados a tu usuario
                     </AlertDescription>
                 </Alert>
             </div>
-        );
+        )
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full items-center">
             <div className="flex items-center justify-between py-4 space-x-4 mx-2">
                 <Input
-                    placeholder="Filtrar por nombre de atleta o juez..."
-                    value={filterInput}
-                    onChange={(e) => setFilterInput(e.target.value)}
+                    placeholder="Filtrar por nombre de evento..."
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
                     className="max-w-sm"
                 />
                 <DropdownMenu>
@@ -227,12 +238,14 @@ export default function DisqualificationList() {
                                 >
                                     {(() => {
                                         switch (column.id) {
-                                            case "official":
-                                                return "Juez";
-                                            case "reason":
-                                                return "Razón";
-                                            case "time":
-                                                return "Hora";
+                                            case "date":
+                                                return "Fecha";
+                                            case "location":
+                                                return "Localidad";
+                                            case "province":
+                                                return "Provincia";
+                                            case "distances":
+                                                return "Distancias";
                                             default:
                                                 return column.id;
                                         }
@@ -246,16 +259,15 @@ export default function DisqualificationList() {
 
             <Table>
                 <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
+                    {table.getHeaderGroups().map(headerGroup => (
                         <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => (
+                            {headerGroup.headers.map(header => (
                                 <TableHead key={header.id} className='w-1/6'>
-                                    {header.isPlaceholder ? null : (
+                                    {header.isPlaceholder || header.id === 'actions' ? null : (
                                         <Button
                                             variant="ghost"
                                             onClick={header.column.getToggleSortingHandler()}
-                                            className="w-full"
-                                            disabled={header.column.id === 'actions'}
+                                            className={"w-full"}
                                         >
                                             {flexRender(header.column.columnDef.header, header.getContext())}
                                         </Button>
@@ -266,28 +278,32 @@ export default function DisqualificationList() {
                     ))}
                 </TableHeader>
                 <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id}>
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell key={cell.id}>
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </TableCell>
-                            ))}
+                    {paginatedEvents.length > 0 ? (
+                        paginatedEvents.map(row => (
+                            <TableRow key={row.id}>
+                                {row.getVisibleCells().map(cell => (
+                                    <TableCell key={cell.id}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={columns.length} className='text-center'>No se encontraron eventos</TableCell>
                         </TableRow>
-                    ))}
+                    )}
                 </TableBody>
             </Table>
 
             {table.getRowCount() > 0 && (
-                <Small className="text-center mt-4 font-medium">
-                    Mostrando {table.getRowCount()} elementos
-                </Small>
+                <Small className='text-center mt-4 font-medium'>Mostrando {table.getRowCount()} elementos</Small>
             )}
             <PaginationComponent
                 totalPages={table.getPageCount()}
                 currentPage={currentPage + 1}
-                handlePageChange={(newPage) => setCurrentPage(newPage - 1)}
-                className="mt-2"
+                handlePageChange={handlePageChange}
+                className='mt-2'
             />
         </div>
     );
