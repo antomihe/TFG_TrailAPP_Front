@@ -24,7 +24,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Flag, FlagOff } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, ChevronDown, Flag, FlagOff } from 'lucide-react';
 import { timeFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
 import { Small } from '@/components/ui';
@@ -34,6 +34,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const PAGE_SIZE = 4;
 
@@ -59,8 +60,9 @@ export default function DisqualificationList() {
                 setIsReferee(resEvent.data.isReferee);
                 const res = await api(user.access_token).get(`events/disqualification/${eventId}`);
                 setDisqualifications(res.data);
-            } catch (err) {
-                setErrorLoading('Error cargando datos');
+            } catch (error) {
+                const errorMessage = (error as any)?.response?.data?.message;
+                setErrorLoading(errorMessage || 'Error desconocido');
             } finally {
                 setLoading(false);
             }
@@ -160,16 +162,43 @@ export default function DisqualificationList() {
     }
 
     if (errorLoading) {
-        return <div className="text-center pt-5">{errorLoading}</div>;
+        return (
+            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
+                <Alert className="flex items-center space-x-2 p-5">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertDescription>
+                        {errorLoading}
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
     }
 
     if (disqualifications.length === 0) {
-        return <div className="text-center pt-5">No hay eventos asociados a tu federación</div>;
+        if (errorLoading) {
+            return (
+                <div className="flex items-center justify-center max-w-xl mx-auto p-4">
+                    <Alert className="flex items-center space-x-2 p-5">
+                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                        <AlertDescription>
+                            <div className="text-center pt-5">No hay eventos asociados a tu federación</div>;
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            );
+        }
     }
 
     if (!isReferee) {
         return (
-            <div className="text-center pt-5">No eres Juez Árbitro de la carrera actual</div>
+            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
+                <Alert className="flex items-center space-x-2 p-5">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertDescription>
+                        <div className="text-center pt-5">No eres Juez Árbitro de la carrera actual</div>
+                    </AlertDescription>
+                </Alert>
+            </div>
         );
     }
 

@@ -65,17 +65,17 @@ export default function NewDisqualificationReportForm() {
 
     if (errorLoading) {
         return (
-            <div className="max-w-xl mx-auto p-4">
+            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
                 <Alert className="flex items-center space-x-2 p-5">
                     <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription >
+                    <AlertDescription>
                         {errorLoading}
                     </AlertDescription>
                 </Alert>
-
             </div>
         );
     }
+    
 
     return (
         <div className="max-w-xl mx-auto p-4">
