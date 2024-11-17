@@ -36,7 +36,7 @@ export default function EquipmentForm() {
         const fetchEquipment = async () => {
             setLoading(true);
             try {
-                const loadEquipment = await api(userState.access_token).get(`events/equipment/${eventId}`);
+                const loadEquipment = await api(userState.access_token).get(`events/equipment/event/${eventId}`);
                 setEquipment(loadEquipment.data);
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;
@@ -47,8 +47,6 @@ export default function EquipmentForm() {
         };
         fetchEquipment();
     }, []);
-
-
 
     const SkeletonLoader = () => (
         <div className="max-w-xl mx-auto p-4">
