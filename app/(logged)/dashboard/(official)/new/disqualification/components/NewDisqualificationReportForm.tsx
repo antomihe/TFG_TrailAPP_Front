@@ -29,13 +29,20 @@ const SkeletonLoader = () => (
     </div>
 );
 
+export interface Athlete {
+    id: string;
+    displayName: string;
+    dorsal: number;
+    isDisqualified: boolean;
+};
+
 export default function NewDisqualificationReportForm() {
     const [loading, setLoading] = React.useState(false);
     const [sending, setSending] = React.useState(false);
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const [open, setOpen] = React.useState(false);
-    const [athletes, setAthletes] = React.useState<{ id: string; displayName: string, dorsal: number, isDisqualified: boolean }[]>([]);
+    const [athletes, setAthletes] = React.useState<Athlete[]>([]);
     const [event, setEvent] = React.useState<{ id: string; name: string }>({ id: '', name: '' });
     const [errorLoading, setErrorLoading] = React.useState<string>('');
     const { user: userState } = useUserState();
