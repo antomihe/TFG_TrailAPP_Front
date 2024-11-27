@@ -37,7 +37,7 @@ export default function EquipmentForm() {
             setLoading(true);
             try {
                 const loadEquipment = await api(userState.access_token).get(`events/equipment/event/${eventId}`);
-                setEquipment(loadEquipment.data);
+                setEquipment(await loadEquipment.data);
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;
                 setErrorLoading(errorMessage || 'Error desconocido');

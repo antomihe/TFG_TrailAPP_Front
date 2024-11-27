@@ -29,7 +29,7 @@ type Props = {
     user: { access_token: string };
 };
 
-type MaterialDetails = {
+export type MaterialDetails = {
     [id: string]: string;
 };
 

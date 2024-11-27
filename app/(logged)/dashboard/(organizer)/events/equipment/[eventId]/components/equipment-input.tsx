@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { set } from 'date-fns';
 
 type Tag = { name: string; optional: boolean };
 

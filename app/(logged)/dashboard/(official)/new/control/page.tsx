@@ -4,7 +4,7 @@ import ControlList from "./components/ControlList";
 export default function ControlListPage() {
     return (
         <>
-            <Head title="Eventos" subtitle="Listados de controles de material" />
+            <Head title="Eventos" subtitle="Asignación de controles de material" />
 
             <ControlList />
         </>

@@ -75,6 +75,11 @@ export const OfficialLinks: MenuItemList = [
     {
         title: "Control de material",
         description: "Asignación de controles de material",
+        link: "dashboard/new/control",
+    },
+    {
+        title: "Control de material",
+        description: "Realizar control de material",
         link: "dashboard/events/control",
     },
 ];

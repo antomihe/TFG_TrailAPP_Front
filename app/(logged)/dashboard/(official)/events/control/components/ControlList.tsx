@@ -1,72 +1,41 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUserState } from '@/store/user/user.store';
 import api from '@/config/api';
-import { Button } from '@/components/ui/button';
-import { Input } from "@/components/ui/input";
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
-    ColumnDef,
-    ColumnFiltersState,
-    SortingState,
-    VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
-import { ChevronDown, ArrowUpDown, Wrench, AlertTriangle } from 'lucide-react';
-import { dateFormatter } from '@/lib/utils';
-import { PaginationComponent } from '@/components/ui/pagination-component';
-import { Small } from '@/components/ui';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useUserState } from '@/store/user/user.store';
+import { ControlItem, ControlType } from '../../../new/control/[eventId]/components/ControlForm';
+import { Button, Card, CardTitle, Skeleton } from '@/components/ui';
+import { CardContent, CardHeader } from '@/components/ui/card';
+import { NotebookPen } from 'lucide-react';
+import { MaterialDetails } from '../../../new/control/[eventId]/components/Control-input';
+import { AlertComponent } from '@/components/ui/alert-component';
+import Link from 'next/link';
 
 interface Event {
     id: string;
-    name: string;
-    date: string;
-    location: string;
-    province: string;
-    validated: boolean;
-    distances: number[];
 }
 
-const PAGE_SIZE = 4;
 
 export default function ControlList() {
-    const router = useRouter();
-    const user = useUserState().user;
-    const [events, setEvents] = useState<Event[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [event, setEvent] = useState<Event>();
+    const [loading, setLoading] = useState<boolean>(true);
     const [errorLoading, setErrorLoading] = useState<string | null>(null);
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [currentPage, setCurrentPage] = useState(0);
+    const [materialLoading, setMaterialLoading] = useState<boolean>(true);
+    const [controls, setControls] = useState<ControlItem[]>([]);
+    const [materialDetails, setMaterialDetails] = useState<MaterialDetails>({});
+
+
+    const { user } = useUserState();
 
     useEffect(() => {
-        const fetchEvents = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await api(user.access_token).get(`events/jury/eventsByReferee/${user.id}`);
-                setEvents(res.data);
+                const loadEvent = await api(user.access_token).get(`events/jury/today`);
+                const loadControls = await api(user.access_token).get(`events/control/event/${loadEvent.data.id}`);
+
+                setEvent(await loadEvent.data);
+                setControls(await loadControls.data);
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;
                 setErrorLoading(errorMessage || 'Error desconocido');
@@ -75,236 +44,101 @@ export default function ControlList() {
             }
         };
 
-        fetchEvents();
-    }, [user.id]);
+        fetchData();
+    }, []);
 
-    const columns: ColumnDef<Event>[] = [
-        {
-            accessorKey: "name",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Nombre
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('name')}</div>,
-            enableHiding: false,
-        },
-        {
-            accessorKey: "date",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Fecha
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{dateFormatter(row.getValue('date'))}</div>,
-        },
-        {
-            accessorKey: "location",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Localidad
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('location')}</div>,
-        },
-        {
-            accessorKey: "province",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Provincia
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('province')}</div>,
-        },
-        {
-            accessorKey: "distances",
-            header: () => (
-                <div className="w-full text-center">Distancias</div>
-            ),
-            enableSorting: false,
-            cell: ({ row }) => (
-                <div className="text-center">
-                    {(row.getValue('distances') as number[]).map((element: number) => `${element}km`).join(', ')}
-                </div>
-            ),
-        },
-        {
-            id: "actions",
-            enableHiding: false,
-            enableSorting: false,
-            cell: ({ row }) => {
-                const event = row.original;
-                return (
-                    <div className="flex space-x-2 justify-end">
-                        <Button
-                            onClick={() => router.push(`/dashboard/new/control/${event.id}`)}
-                            variant="outline"
-                            className="flex items-center bg-transparent border-primary"
-                            onMouseEnter={() => router.prefetch(`/dashboard/new/control/${event.id}`)}
-                        >
-                            <Wrench className="mr-2 h-4 w-4" /> Puntos de control
-                        </Button>
-                    </div>
-                );
-            },
-        },
-    ];
+    useEffect(() => {
+        const fetchMaterialDetails = async () => {
+            const details: MaterialDetails = {};
+            try {
+                setMaterialLoading(true);
+                for (const control of controls) {
+                    for (const item of control.material) {
+                        const response = await api(user.access_token).get(`events/equipment/${item}`);
+                        details[item] = response.data.name;
+                    }
+                }
+            } catch (error) {
+                const errorMessage = (error as any)?.response?.data?.message;
+                setErrorLoading(errorMessage || 'Error desconocido');
+            } finally {
+                setMaterialLoading(false);
+            }
 
+            setMaterialDetails(details);
+        };
 
-    const table = useReactTable({
-        data: events,
-        columns,
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnFiltersChange: setColumnFilters,
-        onColumnVisibilityChange: setColumnVisibility,
-        state: {
-            sorting,
-            columnFilters,
-            columnVisibility,
-            pagination: {
-                pageSize: PAGE_SIZE,
-                pageIndex: currentPage,
-            },
-        },
-    });
+        fetchMaterialDetails();
+    }, [controls]);
 
-    const paginatedEvents = table.getRowModel().rows;
-
-    const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage - 1);
-
-    };
-
-    if (loading) {
-        return <div className="text-center pt-5">Cargando...</div>;
-    }
+    const SkeletonLoader = () => (
+        <div className="max-w-xl mx-auto p-4">
+            <Skeleton height="h-8" width="w-full" className="my-4" />
+        </div>
+    );
 
     if (errorLoading) {
-        return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert className="flex items-center space-x-2 p-5">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription>
-                        {errorLoading}
-                    </AlertDescription>
-                </Alert>
-            </div>
-        );
+        return <div className="text-red-500">{errorLoading}</div>;
     }
 
-    if (events.length === 0) {
-        return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert className="flex items-center space-x-2 p-5">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription>
-                        No hay eventos futuros como Juez Árbitro asociados a tu usuario
-                    </AlertDescription>
-                </Alert>
-            </div>
-        )
+    if (loading) {
+        return <SkeletonLoader />;
+    }
+
+    if (!controls.length) {
+        return <AlertComponent message="No hay puntos de control asignados para el evento de hoy" />;
     }
 
     return (
-        <div className="w-full items-center">
-            <div className="flex items-center justify-between py-4 space-x-4 mx-2">
-                <Input
-                    placeholder="Filtrar por nombre de evento..."
-                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-                    className="max-w-sm"
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columnas <ChevronDown className="ml-2 h-4 w-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {controls.map((control: any, index: number) => (
+                <Card
+                    key={index}
+                    className="relative border shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
+                >
+                    <Link href={`/dashboard/events/control/${control.id}`}>
+                        <CardHeader className=" border-b bg-primary-foreground rounded-lg">
+                            <CardTitle className="text-lg font-medium ">
+                                {control.name}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3 ">
+                            <p>
+                                <span className="font-semibold ">Tipo de punto de control: </span>
+                                {control.type}
+                            </p>
+                            <p>
+                                <span className="font-semibold">Distancias: </span>
+                                {control.distances.join(', ')} km
+                            </p>
+                            {(control.type === ControlType.CONTROL || control.type === ControlType.LIFEBAG) && (
+                                <p>
+                                    <span className="font-semibold">Punto kilométrico: </span>
+                                    {control.kmPosition} km
+                                </p>
+                            )}
+                            {materialLoading ? (
+                                <div className="flex items-center">
+                                    <span className="font-semibold ">Material: </span>
+                                    <Skeleton className="ml-2 h-5 w-full" />
+                                </div>
+                            ) : (
+                                <p>
+                                    <span className="font-semibold ">Material: </span>
+                                    {control.material.map((id: string) => materialDetails[id]).join(', ')}
+                                </p>
+                            )}
+                        </CardContent>
+                        <Button
+                            onClick={() => { }}
+                            variant="default"
+                            className="p-2 absolute top-2 right-2 w-10 bg-primary rounded-full"
+                        >
+                            <NotebookPen size={16} />
                         </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        {table.getAllColumns().map((column) => (
-                            column.getCanHide() && (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value) => column.toggleVisibility(value)}
-                                >
-                                    {(() => {
-                                        switch (column.id) {
-                                            case "date":
-                                                return "Fecha";
-                                            case "location":
-                                                return "Localidad";
-                                            case "province":
-                                                return "Provincia";
-                                            case "distances":
-                                                return "Distancias";
-                                            default:
-                                                return column.id;
-                                        }
-                                    })()}
-                                </DropdownMenuCheckboxItem>
-                            )
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-
-            <Table>
-                <TableHeader>
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <TableHead key={header.id} className='w-1/6'>
-                                    {header.isPlaceholder || header.id === 'actions' ? null : (
-                                        <Button
-                                            variant="ghost"
-                                            onClick={header.column.getToggleSortingHandler()}
-                                            className={"w-full"}
-                                        >
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
-                                        </Button>
-                                    )}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {paginatedEvents.length > 0 ? (
-                        paginatedEvents.map(row => (
-                            <TableRow key={row.id}>
-                                {row.getVisibleCells().map(cell => (
-                                    <TableCell key={cell.id}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={columns.length} className='text-center'>No se encontraron eventos</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-
-            {table.getRowCount() > 0 && (
-                <Small className='text-center mt-4 font-medium'>Mostrando {table.getRowCount()} elementos</Small>
-            )}
-            <PaginationComponent
-                totalPages={table.getPageCount()}
-                currentPage={currentPage + 1}
-                handlePageChange={handlePageChange}
-                className='mt-2'
-            />
+                    </Link>
+                </Card>
+            ))}
         </div>
-    );
+    )
 }
