@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Check, ChevronsUpDown, InfoIcon } from "lucide-react"
+import { AlertTriangle, Ban, Check, ChevronsUpDown, InfoIcon, TriangleRight } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
@@ -35,7 +35,7 @@ export default function NewDisqualificationReportForm() {
     const [error, setError] = React.useState<string>('');
     const [submited, setSubmited] = React.useState<string>('');
     const [open, setOpen] = React.useState(false);
-    const [athletes, setAthletes] = React.useState<{ id: string; displayName: string }[]>([]);
+    const [athletes, setAthletes] = React.useState<{ id: string; displayName: string, dorsal: number, isDisqualified: boolean }[]>([]);
     const [event, setEvent] = React.useState<{ id: string; name: string }>({ id: '', name: '' });
     const [errorLoading, setErrorLoading] = React.useState<string>('');
     const { user: userState } = useUserState();
@@ -165,6 +165,7 @@ export default function NewDisqualificationReportForm() {
                                                                     formik.setFieldValue("athlete", athlete.displayName);
                                                                     setOpen(false);
                                                                 }}
+                                                                disabled={athlete.isDisqualified}
                                                             >
                                                                 <Check
                                                                     className={cn(
@@ -174,7 +175,8 @@ export default function NewDisqualificationReportForm() {
                                                                             : "opacity-0"
                                                                     )}
                                                                 />
-                                                                {athlete.displayName}
+                                                                ({athlete.dorsal}) - {athlete.displayName}
+                                                                {athlete.isDisqualified && <Ban className="h-4 w-4 ml-1 text-red-600" />}
                                                             </CommandItem>
                                                         ))}
                                                     </CommandGroup>

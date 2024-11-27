@@ -24,7 +24,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { AlertTriangle, ArrowUpDown, ChevronDown, Flag, FlagOff } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, ChevronDown, EyeIcon, Flag } from 'lucide-react';
 import { timeFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
 import { Small } from '@/components/ui';
@@ -116,16 +116,17 @@ export default function DisqualificationList() {
             id: "actions",
             enableHiding: false,
             cell: ({ row }) => (
-                <Button
-                    onClick={() => router.push(`/dashboard/disqualifications/${row.original.id}`)}
-                    variant="outline"
-                    className="flex items-center bg-transparent border-primary"
-                    onMouseEnter={() => router.prefetch(`/dashboard/disqualifications/${row.original.id}`)}
-                    disabled={row.original.reviewedByReferee}
-                >
-                    {row.original.reviewedByReferee ? <FlagOff className="mr-2 h-4 w-4" /> : <Flag className="mr-2 h-4 w-4" />}
-                    {row.original.reviewedByReferee ? 'Descalificación resuelta' : 'Resolver descalificación'}
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        onClick={() => router.push(`/dashboard/disqualifications/${row.original.id}`)}
+                        variant="outline"
+                        className="flex items-center bg-transparent border-primary"
+                        onMouseEnter={() => router.prefetch(`/dashboard/disqualifications/${row.original.id}`)}
+                    >
+                        {row.original.reviewedByReferee ? <EyeIcon className="mr-2 h-4 w-4" /> : <Flag className="mr-2 h-4 w-4" />}
+                        {row.original.reviewedByReferee ? 'Ver parte descalificación' : 'Resolver descalificación'}
+                    </Button>
+                </div>
             ),
         },
     ];
