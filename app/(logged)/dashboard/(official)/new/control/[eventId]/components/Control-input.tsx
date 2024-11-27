@@ -166,7 +166,7 @@ export default function ControlInput({
             <div className="space-y-4 border-2 rounded-lg p-4">
                 <Select
                     value={controlType}
-                    onValueChange={(value: string) => setControlType(value)}
+                    onValueChange={(value: string | undefined) => setControlType(value)}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona un tipo de control" />
@@ -178,6 +178,7 @@ export default function ControlInput({
                         <SelectItem value={ControlType.FINISH}>{ControlType.FINISH}</SelectItem>
                     </SelectContent>
                 </Select>
+
 
                 {controlType && (
                     <>

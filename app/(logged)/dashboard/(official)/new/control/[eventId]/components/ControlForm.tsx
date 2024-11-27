@@ -71,7 +71,6 @@ export default function ControlForm() {
         setErrorSending(null);
         try {
             const response = await api(user.access_token).post(`events/control/${eventId}`, data);
-            console.log(response.data);
             return response.data.id;
         } catch (error) {
             const errorMessage = (error as any)?.response?.data?.message;
@@ -97,7 +96,7 @@ export default function ControlForm() {
     );
 
     if (errorLoading) {
-        return <div className="text-red-500">{errorLoading}</div>;
+        return <div className="text-red-500 text-center">{errorLoading}</div>;
     }
 
     return (
