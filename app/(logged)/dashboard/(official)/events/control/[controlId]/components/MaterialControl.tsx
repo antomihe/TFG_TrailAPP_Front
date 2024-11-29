@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
 import { useParams } from 'next/navigation';
-import { Label, Skeleton } from '@/components/ui';
+import { H3, Label, Skeleton } from '@/components/ui';
 import { AlertComponent } from '@/components/ui/alert-component';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -16,21 +16,19 @@ import { Ban, Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Athlete } from '../../../../new/disqualification/components/NewDisqualificationReportForm';
 
-interface MaterialDetails {
-  name: string;
-  isOptional: boolean;
-}
-
 export default function MaterialControl() {
   const [loading, setLoading] = useState<boolean>(true);
   const [errorLoading, setErrorLoading] = useState<string | null>(null);
   const [sending, setSending] = useState<boolean>(false);
   const [errorSending, setErrorSending] = useState<string | null>(null);
   const [successSending, setSuccessSending] = useState<string | null>(null);
+  const [contorlName, setControlName] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialDetails[]>([]);
-  const [openDialog, setOpenDialog] = useState<boolean>(false); // Estado para el diálogo
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [allSelected, setAllSelected] = useState<boolean>(false);
+  const [athleteMaterial, setAthleteMaterial] = useState<string[]>([]);
   const { user } = useUserState();
   const { controlId } = useParams();
 
@@ -41,21 +39,23 @@ export default function MaterialControl() {
 
         const response = await api(user.access_token).get(`events/control/${controlId}`);
         const materialIds = response.data.material;
-
+        
         const materialsPromises = materialIds.map((materialId: string) =>
           api(user.access_token)
-            .get(`events/equipment/${materialId}`)
-            .then((fetchedMaterial) => ({
+        .get(`events/equipment/${materialId}`)
+        .then((fetchedMaterial) => ({
               name: fetchedMaterial.data.name,
-              isOptional: fetchedMaterial.data.isOptional,
+              optional: fetchedMaterial.data.optional,
+              id: fetchedMaterial.data.id,
             }))
         );
-
+        
         const loadAthletes = await api(user.access_token).get(`events/enroll/event/${response.data.eventId}`);
         const materials = await Promise.all(materialsPromises);
-
+        
         setMaterials(materials);
         setAthletes(loadAthletes.data);
+        setControlName(response.data.name); 
       } catch (error) {
         const errorMessage = (error as any)?.response?.data?.message;
         setErrorLoading(errorMessage || 'Error desconocido');
@@ -82,12 +82,17 @@ export default function MaterialControl() {
     athlete: string;
   }
 
+  interface MaterialDetails {
+    name: string;
+    optional: boolean;
+    id: string;
+  }
+
   const sendData = async (values: FormValues, resetForm: () => void, sendMessage?: string) => {
     try {
       setSending(true);
       setErrorSending(null);
 
-      
       const selectedMaterials = Object.entries(values.materials)
         .filter(([, selected]) => selected)
         .map(([name]) => name);
@@ -96,7 +101,6 @@ export default function MaterialControl() {
         athlete: values.athlete,
         material: selectedMaterials,
       });
-      
 
       setSuccessSending(sendMessage || 'Datos enviados correctamente');
       resetForm();
@@ -108,12 +112,11 @@ export default function MaterialControl() {
     }
   };
 
-
   const toggleSelectAll = (values: { [key: string]: boolean }, setFieldValue: any) => {
     const allSelected = Object.values(values).every((value) => value === true);
 
     const updatedMaterials = materials.reduce((acc: { [key: string]: boolean }, item) => {
-      acc[item.name] = !allSelected;
+      acc[item.id] = !allSelected;
       return acc;
     }, {});
 
@@ -149,14 +152,12 @@ export default function MaterialControl() {
       enableReinitialize
       initialValues={{
         materials: materials.reduce((acc, item) => {
-          acc[item.name] = false;
+          acc[item.id] = false;
           return acc;
         }, {} as { [key: string]: boolean }),
         athlete: '',
       }}
       onSubmit={(values, { resetForm }) => {
-        const allSelected = Object.values(values.materials).every((value) => value === true);
-
         if (!allSelected) {
           setOpenDialog(true);
         } else {
@@ -165,14 +166,35 @@ export default function MaterialControl() {
       }}
     >
       {({ values, setFieldValue, touched, errors, resetForm }) => {
-        const allSelected = Object.values(values.materials).every((value) => value === true);
+        useEffect(() => {
+          const isAllSelected = Object.values(values.materials).every((value) => value === true);
+          setAllSelected(isAllSelected);
+        }, [values.materials]);
+
+        useEffect(() => {
+          const fetchEquipment = async () => {
+            if (values.athlete) {
+              const response = await api(user.access_token).get(`events/checks/${controlId}/equipment/${values.athlete}`);
+              const ahtleteMaterials = await response.data.material;
+              setAthleteMaterial(ahtleteMaterials);
+
+              setFieldValue('materials', materials.reduce((acc, item) => {
+                acc[item.id] = ahtleteMaterials.includes(item.id);
+                return acc;
+              }, {} as { [key: string]: boolean }));
+            }
+          };
+          fetchEquipment();
+        }, [values.athlete]);
 
         const confirmSubmit = () => {
           setOpenDialog(false);
-          sendData(values, resetForm, 'Datos enviados correctamente (parte de descalificación enviado correctamente)');
+          sendData(values, resetForm);
         };
 
         return (
+          <>
+          <H3 className="text-center">Control en {contorlName}</H3>
           <Form className="max-w-xl mx-auto space-y-3">
             <div className="space-y-1">
               <Label htmlFor="athlete">Atleta</Label>
@@ -185,7 +207,7 @@ export default function MaterialControl() {
                     aria-expanded={open}
                   >
                     {values.athlete
-                      ? athletes.find(athlete => athlete.displayName === values.athlete)?.displayName
+                      ? athletes.find((athlete) => athlete.id === values.athlete)?.displayName
                       : "Selecciona un atleta"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -196,11 +218,12 @@ export default function MaterialControl() {
                     <CommandList>
                       <CommandEmpty>Sin coincidencias</CommandEmpty>
                       <CommandGroup>
-                        {athletes.map(athlete => (
+                        {athletes.map((athlete) => (
                           <CommandItem
                             key={athlete.id}
                             onSelect={() => {
-                              setFieldValue("athlete", athlete.displayName);
+                              resetForm();
+                              setFieldValue("athlete", athlete.id);
                               setOpen(false);
                             }}
                             disabled={athlete.isDisqualified}
@@ -208,11 +231,9 @@ export default function MaterialControl() {
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                values.athlete === athlete.displayName
-                                  ? "opacity-100"
-                                  : "opacity-0"
+                                values.athlete === athlete.id ? "opacity-100" : "opacity-0"
                               )}
-                            />
+                              />
                             ({athlete.dorsal}) - {athlete.displayName}
                             {athlete.isDisqualified && <Ban className="h-4 w-4 ml-1 text-red-600" />}
                           </CommandItem>
@@ -222,9 +243,7 @@ export default function MaterialControl() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              {touched.athlete && errors.athlete && (
-                <p className="text-red-500 text-sm">{errors.athlete}</p>
-              )}
+              {touched.athlete && errors.athlete && <p className="text-red-500 text-sm">{errors.athlete}</p>}
             </div>
             {successSending && <div className="text-green-500 text-justify">{successSending}</div>}
 
@@ -233,59 +252,48 @@ export default function MaterialControl() {
                 <h2 className="font-semibold text-center">Control de Material</h2>
                 <div className="space-y-4">
                   {materials.map((item) => (
-                    <div key={item.name} className="flex items-center space-x-4">
+                    <div key={item.id} className="flex items-center space-x-4">
                       <Checkbox
-                        checked={values.materials[item.name]}
+                        checked={values.materials[item.id]}
                         onCheckedChange={(checked: boolean) =>
-                          setFieldValue(`materials.${item.name}`, checked)
+                          setFieldValue(`materials.${item.id}`, checked)
                         }
-                        id={item.name}
+                        id={item.id}
                         className="h-5 w-5 cursor-pointer"
-                      />
-                      <label htmlFor={item.name} className="font-medium cursor-pointer">
-                        {item.name} {item.isOptional && <span className="text-gray-500 cursor-pointer">(opcional)</span>}
+                        />
+                      <label htmlFor={item.id} className="font-medium cursor-pointer">
+                        {item.name} {item.optional && <span className="text-gray-500 cursor-pointer">(opcional)</span>}
                       </label>
                     </div>
                   ))}
                 </div>
-
-                <div className="space-y-2">
-                  <Button
-                    type="button"
-                    onClick={() => toggleSelectAll(values.materials, setFieldValue)}
-                    className="w-full px-6 py-3"
-                    variant={allSelected ? 'ghost' : 'outline'}
-                  >
-                    {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
-                  </Button>
-                  <Button type="submit" className="w-full px-6 py-3" variant="default">
-                    {sending ? 'Enviando...' : 'Enviar'}
-                  </Button>
-                  {errorSending && <div className="text-red-500 text-center">{errorSending}</div>}
-                </div>
+                <Button type="button" variant={allSelected ? 'ghost' : 'outline'} onClick={() => toggleSelectAll(values.materials, setFieldValue)} className='w-full'>
+                  {allSelected ? "Desmarcar todos" : "Seleccionar todos"}
+                </Button>
               </div>
             )}
-
-            {/* Diálogo de confirmación */}
+            <Button disabled={sending || !values.athlete} type="submit" className="w-full">
+              {sending ? "Enviando..." : "Enviar"}
+            </Button>
+            {errorSending && <div className="text-red-500 text-justify">{errorSending}</div>}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Confirmar envío</DialogTitle>
-                  <p className="text-sm text-gray-500">
-                    No has seleccionado todos los materiales. ¿Deseas continuar de todas formas?
-                  </p>
+                  <DialogTitle>¿Estás seguro de enviar la información?</DialogTitle>
+                  <p>Algunos materiales no han sido seleccionados</p>
                 </DialogHeader>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setOpenDialog(false)}>
+                  <Button disabled={sending} variant="secondary" onClick={() => setOpenDialog(false)}>
                     Cancelar
                   </Button>
-                  <Button variant="default" onClick={confirmSubmit}>
+                  <Button disabled={sending} variant="default" onClick={confirmSubmit}>
                     Confirmar
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           </Form>
+            </>
         );
       }}
     </Formik>
