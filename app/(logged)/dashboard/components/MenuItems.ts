@@ -41,7 +41,7 @@ export const FederationLinks: MenuItemList = [
         link: "dashboard/events/manage",
     },
     {
-        title: "Eventos",
+        title: "Jurado",
         description: "Asignación de jueces",
         link: "dashboard/events/jury",
     },
@@ -52,12 +52,36 @@ export const OrganizerLinks: MenuItemList = [
         title: "Eventos",
         description: "Registrar nuevo evento",
         link: "dashboard/new/event",
+    },
+    {
+        title: "Material",
+        description: "Asignación de material",
+        link: "dashboard/events/equipment",
     }
 
 ];
 
 export const OfficialLinks: MenuItemList = [
-
+    {
+        title: "Descalificaciones",
+        description: "Enviar parte de descalificacion",
+        link: "dashboard/new/disqualification",
+    },
+    {
+        title: "Descalificaciones JA",
+        description: "Recibir parte de descalificacion",
+        link: "dashboard/disqualifications",
+    },
+    {
+        title: "Control de material",
+        description: "Asignación de controles de material",
+        link: "dashboard/new/control",
+    },
+    {
+        title: "Control de material",
+        description: "Realizar control de material",
+        link: "dashboard/events/control",
+    },
 ];
 
 

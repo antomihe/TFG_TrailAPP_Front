@@ -9,7 +9,7 @@ import { useUserState } from '@/store/user/user.store';
 import { ProvincesComponent } from '@/components/ui/provinceInput';
 import { LocationComponent } from '@/components/ui/locationInput';
 import { DateInput } from '@/components/ui/dateInput';
-import MultipleDistanceInput from '@/components/ui/multiple-distance-input';
+import MultipleDistanceInput from '@/app/(logged)/dashboard/(organizer)/new/event/components/multiple-distance-input';
 
 const schema = Yup.object().shape({
     name: Yup.string().required('El nombre es obligatorio'),

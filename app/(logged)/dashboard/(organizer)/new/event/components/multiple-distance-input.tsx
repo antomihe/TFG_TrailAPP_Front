@@ -37,6 +37,7 @@ export default function MultipleDistanceInput({ values, setFieldValue, setFieldT
 
     const removeTag = (index: number) => {
         setFieldValue('distances', values.filter((_, i) => i !== index));
+        setFieldTouched('distances', true, false);
     };
 
     return (
