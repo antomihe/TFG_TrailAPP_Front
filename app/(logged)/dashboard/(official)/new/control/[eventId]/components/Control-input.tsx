@@ -18,6 +18,7 @@ type ControlItem = {
 };
 
 import { Skeleton } from '@/components/ui';
+import { set } from 'date-fns';
 
 type Props = {
     values: any[];
@@ -27,6 +28,7 @@ type Props = {
     postControl: (control: any) => Promise<any>;
     deleteControl: (id: string) => Promise<void>;
     user: { access_token: string };
+    errorSending: string | null;
 };
 
 export type MaterialDetails = {
@@ -45,6 +47,7 @@ export default function ControlInput({
     postControl,
     deleteControl,
     user,
+    errorSending,
 }: Props) {
     const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
     const [name, setName] = useState<string>('');
@@ -64,7 +67,8 @@ export default function ControlInput({
             selectedMaterial.length === 0 ||
             ((controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG)
                 ? kmPosition === undefined
-                : kmPosition !== undefined)
+                : kmPosition !== undefined
+            )
         );
     }, [name, values, selectedDistances, kmPosition, selectedMaterial, controlType]);
 
@@ -92,7 +96,11 @@ export default function ControlInput({
     }, [material, user.access_token]);
 
     useEffect(() => {
-        if (controlType === ControlType.START || controlType === ControlType.FINISH) {
+        if (controlType === ControlType.START) {
+            setName(controlType);
+            setKmPosition(undefined);
+            setSelectedMaterial(material.map((item) => item.id));
+        } else if (controlType === ControlType.FINISH) {
             setName(controlType);
             setKmPosition(undefined);
         } else {
@@ -105,17 +113,32 @@ export default function ControlInput({
         const newErrors: Errors = {};
         if (!trimmedName || values.some((item) => item.name.toLowerCase() === trimmedName.toLowerCase())) {
             newErrors.name = 'El nombre del control ya existe o está vacío';
-        } else if (selectedDistances.length === 0) {
+        } 
+
+        if (selectedDistances.length === 0) {
             newErrors.distances = 'Debes seleccionar al menos una distancia';
-        } else if (selectedMaterial.length === 0) {
+        } 
+
+        if (selectedMaterial.length === 0) {
             newErrors.material = 'Debes seleccionar al menos un material';
-        } else if (controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG) {
+        } 
+        
+        if (controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG) {
             if (kmPosition === undefined) {
                 newErrors.kmPosition = 'La posición en km es obligatoria';
             }
 
             if (kmPosition !== undefined && (kmPosition > Math.max(...selectedDistances) || kmPosition <= 0)) {
                 newErrors.kmPosition = 'El punto kilométrico debe estar contenido en la carrera';
+            }
+        } 
+        
+        if (controlType === ControlType.LIFEBAG) {
+            console.log('lifebag');
+            for (const m in material) {
+                if (material[m].optional && !selectedMaterial.includes(material[m].id)) {
+                    newErrors.material = 'Debes seleccionar todos los materiales opcionales';
+                }
             }
         }
 
@@ -191,7 +214,6 @@ export default function ControlInput({
                                 id="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                disabled={controlType === ControlType.START || controlType === ControlType.FINISH}
                                 placeholder="Añadir nombre del control"
                                 className="mt-1"
                             />
@@ -233,19 +255,21 @@ export default function ControlInput({
                         </div>
 
                         {/* Selección de material */}
-                        <div className="flex flex-col">
-                            <label htmlFor="material" className="text-sm font-medium text-gray-700">
-                                Material
-                            </label>
-                            <MultiSelect
-                                options={materialOptions}
-                                value={selectedMaterial}
-                                onValueChange={setSelectedMaterial}
-                                placeholder="Selecciona material"
-                                variant="inverted"
-                            />
-                            {errors.material && <p className="text-xs text-red-500">{errors.material}</p>}
-                        </div>
+                        {(controlType !== ControlType.START) && (
+                            <div className="flex flex-col">
+                                <label htmlFor="material" className="text-sm font-medium text-gray-700">
+                                    Material
+                                </label>
+                                <MultiSelect
+                                    options={materialOptions}
+                                    value={selectedMaterial}
+                                    onValueChange={setSelectedMaterial}
+                                    placeholder="Selecciona material"
+                                    variant="inverted"
+                                />
+                                {errors.material && <p className="text-xs text-red-500">{errors.material}</p>}
+                            </div>
+                        )}
 
                         {/* Botón de añadir */}
                         <Button
@@ -259,6 +283,9 @@ export default function ControlInput({
                     </>
                 )}
             </div>
+
+            {errorSending && <div className="text-red-500">{errorSending}</div>}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {values.map((control: any, index: number) => (
                     <Card key={index} className="border relative">

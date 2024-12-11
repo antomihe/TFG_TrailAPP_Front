@@ -113,9 +113,9 @@ export default function ControlForm() {
                         material={material}
                         postControl={postControl}
                         deleteControl={deleteControl}
+                        errorSending={errorSending}
                         user={user}
                     />
-                    {errorSending && <div className="text-red-500">{errorSending}</div>}
                 </>
             )}
         </div>
