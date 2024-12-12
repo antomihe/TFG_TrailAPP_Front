@@ -32,7 +32,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ArrowUpDown, Wrench } from 'lucide-react';
+import { ChevronDown, ArrowUpDown, Wrench, PersonStanding } from 'lucide-react';
 import { dateFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
 import { Small } from '@/components/ui';
@@ -63,7 +63,7 @@ export default function EventsOrganizerList() {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const res = await api(user.access_token).get(`events/organizer/future/${user.id}`);
+                const res = await api(user.access_token).get(`events/organizer/${user.id}`);
                 setEvents(res.data);
             } catch (err) {
                 console.error(err);
@@ -138,12 +138,11 @@ export default function EventsOrganizerList() {
                 return (
                     <div className="flex space-x-2 justify-end">
                         <Button
-                            onClick={() => router.push(`/dashboard/events/equipment/${event.id}`)}
+                            onClick={() => router.push(`/dashboard/events/enrollments/${event.id}`)}
                             variant="outline"
                             className="flex items-center bg-transparent border-primary"
-                            onMouseEnter={() => router.prefetch(`/dashboard/events/equipment/${event.id}`)}
                         >
-                            <Wrench className="mr-2 h-4 w-4" /> Material
+                            <PersonStanding className="mr-2 h-4 w-4" /> Inscripciones
                         </Button>
                     </div>
                 );

@@ -54,6 +54,11 @@ export const OrganizerLinks: MenuItemList = [
         link: "dashboard/new/event",
     },
     {
+        title: "Inscripciones",
+        description: "Listado de inscripciones",
+        link: "dashboard/events/enrollments",
+    },
+    {
         title: "Material",
         description: "Asignación de material",
         link: "dashboard/events/equipment",
