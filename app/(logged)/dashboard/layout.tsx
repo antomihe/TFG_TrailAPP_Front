@@ -114,7 +114,7 @@ const mainLinks = [
   },
   {
     label: "Chat",
-    href: "#",
+    href: "/dashboard/chat",
     icon: <IconMessages className="h-5 w-5 flex-shrink-0" />,
   },
 ];
