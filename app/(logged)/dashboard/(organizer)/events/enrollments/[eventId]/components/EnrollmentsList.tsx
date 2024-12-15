@@ -82,6 +82,31 @@ export default function EnrollmentList() {
                     className="p-2 bg-input border rounded w-2/5"
                     onChange={handleFilterChange}
                 />
+                <Button
+                    onClick={async () => {
+                        try {
+                            const response = await api(user.access_token).get(`events/enroll/event/${eventId}/print`, {
+                                responseType: 'blob',
+                            });
+
+                            const blob = new Blob([response.data], { type: 'application/pdf' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `inscripciones_evento_${eventId}.pdf`; 
+                            document.body.appendChild(link);
+                            link.click();
+
+                            link.parentNode?.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        } catch (error) {
+                            console.error('Error al descargar el PDF', error);
+                        }
+                    }}
+                >
+                    Descargar PDF
+                </Button>
+
             </div>
 
             <div className="mx-auto overflow-x-auto">
@@ -103,7 +128,7 @@ export default function EnrollmentList() {
                                     <TableCell>{athlete.name}</TableCell>
                                     <TableCell>{athlete.dni}</TableCell>
                                     <TableCell>{athlete.birthdate}</TableCell>
-                                    <TableCell>{athlete.distance}</TableCell>
+                                    <TableCell>{athlete.distance} KM</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
