@@ -29,5 +29,14 @@ export function timeFormatter(date: Date | string): string {
   });
 }
 
+export function chatDateFormatter(date: Date | string): string {
+  if (new Date(date).toLocaleDateString() === new Date().toLocaleDateString()) {
+    return timeFormatter(date);
+  } else {
+    return `${dateFormatter(date)} a las ${timeFormatter(date)}`;
+  }
+
+}
+
 
 
