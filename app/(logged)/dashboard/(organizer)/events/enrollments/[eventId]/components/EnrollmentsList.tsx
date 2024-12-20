@@ -76,38 +76,67 @@ export default function EnrollmentList() {
     return (
         <div className="max-w-4xl px-4 mx-auto">
             <div className="flex justify-between items-center mb-4">
-                <Input
-                    type="text"
-                    placeholder="Filtrar por nombre o dorsal "
-                    className="p-2 bg-input border rounded w-2/5"
-                    onChange={handleFilterChange}
-                />
-                <Button
-                    onClick={async () => {
-                        try {
-                            const response = await api(user.access_token).get(`events/enroll/event/${eventId}/print`, {
-                                responseType: 'blob',
-                            });
+                <div className="w-2/5">
+                    <Input
+                        type="text"
+                        placeholder="Filtrar por nombre o dorsal"
+                        className="p-2 bg-input border rounded w-full"
+                        onChange={handleFilterChange}
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <Button className="w-40"
+                        onClick={async () => {
+                            try {
+                                const response = await api(user.access_token).get(`events/enroll/event/${eventId}/bibs`, {
+                                    responseType: 'blob',
+                                });
 
-                            const blob = new Blob([response.data], { type: 'application/pdf' });
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = `inscripciones_evento_${eventId}.pdf`; 
-                            document.body.appendChild(link);
-                            link.click();
+                                const blob = new Blob([response.data], { type: 'application/pdf' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `dorsales_evento_${eventId}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
 
-                            link.parentNode?.removeChild(link);
-                            URL.revokeObjectURL(url);
-                        } catch (error) {
-                            console.error('Error al descargar el PDF', error);
-                        }
-                    }}
-                >
-                    Descargar PDF
-                </Button>
+                                link.parentNode?.removeChild(link);
+                                URL.revokeObjectURL(url);
+                            } catch (error) {
+                                console.error('Error al descargar el PDF', error);
+                            }
+                        }}
+                    >
+                        Descargar Dorsales
+                    </Button>
+                    <Button className="w-40"
+                        onClick={async () => {
+                            try {
+                                const response = await api(user.access_token).get(`events/enroll/event/${eventId}/print`, {
+                                    responseType: 'blob',
+                                });
 
+                                const blob = new Blob([response.data], { type: 'application/pdf' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `inscripciones_evento_${eventId}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+
+                                link.parentNode?.removeChild(link);
+                                URL.revokeObjectURL(url);
+                            } catch (error) {
+                                console.error('Error al descargar el PDF', error);
+                            }
+                        }}
+                    >
+                        Descargar PDF
+                    </Button>
+                </div>
             </div>
+
+
 
             <div className="mx-auto overflow-x-auto">
                 <ScrollArea className="h-[500px] overflow-y-auto">
