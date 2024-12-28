@@ -12,6 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Ban, Check, ChevronsUpDown, InfoIcon, TriangleRight } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { toast } from 'sonner'
 
 
 const schema = Yup.object().shape({
@@ -39,8 +40,6 @@ export interface Athlete {
 export default function NewDisqualificationReportForm() {
     const [loading, setLoading] = React.useState(false);
     const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [open, setOpen] = React.useState(false);
     const [athletes, setAthletes] = React.useState<Athlete[]>([]);
     const [event, setEvent] = React.useState<{ id: string; name: string }>({ id: '', name: '' });
@@ -82,7 +81,7 @@ export default function NewDisqualificationReportForm() {
             </div>
         );
     }
-    
+
 
     return (
         <div className="max-w-xl mx-auto p-4">
@@ -95,8 +94,6 @@ export default function NewDisqualificationReportForm() {
                 }}
                 validationSchema={schema}
                 onSubmit={async (values, { resetForm }) => {
-                    setError('');
-                    setSubmited('');
                     try {
                         setSending(true);
                         const request = {
@@ -106,12 +103,11 @@ export default function NewDisqualificationReportForm() {
                             description: values.description,
                         };
                         const res = await api(userState.access_token).post(`/events/disqualification`, request);
-                        setSubmited('¡Éxito! Parte de descalificación enviado');
+                        toast.success('¡Éxito! Parte de descalificación enviado');
                         resetForm();
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setError(errorMessage);
-                        else setError('Error desconocido');
+                        toast.error(errorMessage || 'Error al enviar el parte de descalificación');
                     } finally {
                         setSending(false);
                     }
@@ -226,11 +222,9 @@ export default function NewDisqualificationReportForm() {
                                 </div>
                             </div>
 
-                            {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                             <Button type="submit" className="w-full mt-6" disabled={sending}>
                                 {sending ? 'Cargando...' : 'Enviar parte de descalificación'}
                             </Button>
-                            {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                         </Form>
                     </>
                 )
