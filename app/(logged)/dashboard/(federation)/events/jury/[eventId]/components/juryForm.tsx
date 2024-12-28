@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert";
 import { ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const validationSchema = Yup.object().shape({
     judges: Yup.array().of(
@@ -64,11 +65,9 @@ export default function JuryForm() {
     const params = useParams();
     const [loading, setLoading] = useState(false);
     const [officials, setOfficials] = useState<any[]>([]);
-    const [jury, setJury] = useState<Judge[]>([]);
     const [error, setError] = useState<string>('');
+    const [jury, setJury] = useState<Judge[]>([]);
     const [sending, setSending] = useState<boolean>(false);
-    const [success, setSuccess] = useState<string>('');
-    const [sendingError, setSendingError] = useState<string>('');
     const [openPopovers, setOpenPopovers] = useState<boolean[]>([]);
     const [alertDescription, setAlertDescription] = useState<string>('');
 
@@ -144,9 +143,6 @@ export default function JuryForm() {
                 onSubmit={async (values) => {
                     try {
                         setSending(true);
-                        setSuccess('');
-                        setSendingError('');
-
                         const req = {
                             juries: values.judges
                                 .filter(judge => !judge.erase)
@@ -173,11 +169,10 @@ export default function JuryForm() {
 
                         remainingJudges.forEach(judge => judge.isNational ? judge.canEdit = false : judge.canEdit = true);
 
-                        setSuccess('Guardado correctamente');
+                        toast.success('Guardado correctamente');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setSendingError(errorMessage);
-                        else setSendingError('Error desconocido');
+                        toast.error(errorMessage || 'Error al guardar los datos');
                     } finally {
                         setSending(false);
                     }
@@ -347,18 +342,7 @@ export default function JuryForm() {
                         </div>
                     );
                 }}
-            </Formik >
-            {success && (
-                <div className="text-green-500 mt-4">
-                    {success}
-                </div>
-            )}
-            {sendingError && (
-                <div className="text-red-500 mt-4">
-                    {sendingError}
-                </div>
-            )
-            }
+            </Formik >            
         </div >
     );
 }
