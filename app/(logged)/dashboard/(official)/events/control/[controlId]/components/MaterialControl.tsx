@@ -15,13 +15,12 @@ import { cn } from '@/lib/utils';
 import { Ban, Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Athlete } from '../../../../new/disqualification/components/NewDisqualificationReportForm';
+import { toast } from 'sonner';
 
 export default function MaterialControl() {
   const [loading, setLoading] = useState<boolean>(true);
   const [errorLoading, setErrorLoading] = useState<string | null>(null);
   const [sending, setSending] = useState<boolean>(false);
-  const [errorSending, setErrorSending] = useState<string | null>(null);
-  const [successSending, setSuccessSending] = useState<string | null>(null);
   const [contorlName, setControlName] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialDetails[]>([]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -39,23 +38,23 @@ export default function MaterialControl() {
 
         const response = await api(user.access_token).get(`events/control/${controlId}`);
         const materialIds = response.data.material;
-        
+
         const materialsPromises = materialIds.map((materialId: string) =>
           api(user.access_token)
-        .get(`events/equipment/${materialId}`)
-        .then((fetchedMaterial) => ({
+            .get(`events/equipment/${materialId}`)
+            .then((fetchedMaterial) => ({
               name: fetchedMaterial.data.name,
               optional: fetchedMaterial.data.optional,
               id: fetchedMaterial.data.id,
             }))
         );
-        
+
         const loadAthletes = await api(user.access_token).get(`events/enroll/event/${response.data.eventId}`);
         const materials = await Promise.all(materialsPromises);
-        
+
         setMaterials(materials);
         setAthletes(loadAthletes.data);
-        setControlName(response.data.name); 
+        setControlName(response.data.name);
       } catch (error) {
         const errorMessage = (error as any)?.response?.data?.message;
         setErrorLoading(errorMessage || 'Error desconocido');
@@ -66,16 +65,6 @@ export default function MaterialControl() {
 
     fetchData();
   }, [controlId]);
-
-  useEffect(() => {
-    if (successSending) {
-      const timer = setTimeout(() => {
-        setSuccessSending(null);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [successSending]);
 
   interface FormValues {
     materials: { [key: string]: boolean };
@@ -91,7 +80,6 @@ export default function MaterialControl() {
   const sendData = async (values: FormValues, resetForm: () => void, sendMessage?: string) => {
     try {
       setSending(true);
-      setErrorSending(null);
 
       const selectedMaterials = Object.entries(values.materials)
         .filter(([, selected]) => selected)
@@ -102,11 +90,11 @@ export default function MaterialControl() {
         material: selectedMaterials,
       });
 
-      setSuccessSending(sendMessage || 'Datos enviados correctamente');
+      toast.success(sendMessage || 'Datos enviados correctamente');
       resetForm();
     } catch (error) {
       const errorMessage = (error as any)?.response?.data?.message;
-      setErrorSending(errorMessage || 'Error desconocido');
+      toast.error(errorMessage || 'Error desconocido');
     } finally {
       setSending(false);
     }
@@ -158,7 +146,10 @@ export default function MaterialControl() {
         athlete: '',
       }}
       onSubmit={(values, { resetForm }) => {
-        if (!allSelected) {
+        const unselectedRequiredMaterials = materials
+          .filter((item) => !item.optional && !values.materials[item.id]);
+
+        if (unselectedRequiredMaterials.length > 0) {
           setOpenDialog(true);
         } else {
           sendData(values, resetForm);
@@ -194,106 +185,105 @@ export default function MaterialControl() {
 
         return (
           <>
-          <H3 className="text-center">Control en {contorlName}</H3>
-          <Form className="max-w-xl mx-auto space-y-3">
-            <div className="space-y-1">
-              <Label htmlFor="athlete">Atleta</Label>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-between", !values.athlete ? "text-muted-foreground" : "")}
-                    role="combobox"
-                    aria-expanded={open}
-                  >
-                    {values.athlete
-                      ? athletes.find((athlete) => athlete.id === values.athlete)?.displayName
-                      : "Selecciona un atleta"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar atleta..." />
-                    <CommandList>
-                      <CommandEmpty>Sin coincidencias</CommandEmpty>
-                      <CommandGroup>
-                        {athletes.map((athlete) => (
-                          <CommandItem
-                            key={athlete.id}
-                            onSelect={() => {
-                              resetForm();
-                              setFieldValue("athlete", athlete.id);
-                              setOpen(false);
-                            }}
-                            disabled={athlete.isDisqualified}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                values.athlete === athlete.id ? "opacity-100" : "opacity-0"
-                              )}
+            <H3 className="text-center">Control en {contorlName}</H3>
+            <Form className="max-w-xl mx-auto space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="athlete">Atleta</Label>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn("w-full justify-between", !values.athlete ? "text-muted-foreground" : "")}
+                      role="combobox"
+                      aria-expanded={open}
+                    >
+                      {values.athlete
+                        ? athletes.find((athlete) => athlete.id === values.athlete)?.displayName
+                        : "Selecciona un atleta"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar atleta..." />
+                      <CommandList>
+                        <CommandEmpty>Sin coincidencias</CommandEmpty>
+                        <CommandGroup>
+                          {athletes.map((athlete) => (
+                            <CommandItem
+                              key={athlete.id}
+                              onSelect={() => {
+                                resetForm();
+                                setFieldValue("athlete", athlete.id);
+                                setOpen(false);
+                              }}
+                              disabled={athlete.isDisqualified}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  values.athlete === athlete.id ? "opacity-100" : "opacity-0"
+                                )}
                               />
-                            ({athlete.dorsal}) - {athlete.displayName}
-                            {athlete.isDisqualified && <Ban className="h-4 w-4 ml-1 text-red-600" />}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {touched.athlete && errors.athlete && <p className="text-red-500 text-sm">{errors.athlete}</p>}
-            </div>
-            {successSending && <div className="text-green-500 text-justify">{successSending}</div>}
-
-            {values.athlete && (
-              <div className="space-y-6 border rounded-lg p-6">
-                <h2 className="font-semibold text-center">Control de Material</h2>
-                <div className="space-y-4">
-                  {materials.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4">
-                      <Checkbox
-                        checked={values.materials[item.id]}
-                        onCheckedChange={(checked: boolean) =>
-                          setFieldValue(`materials.${item.id}`, checked)
-                        }
-                        id={item.id}
-                        className="h-5 w-5 cursor-pointer"
-                        />
-                      <label htmlFor={item.id} className="font-medium cursor-pointer">
-                        {item.name} {item.optional && <span className="text-gray-500 cursor-pointer">(opcional)</span>}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                <Button type="button" variant={allSelected ? 'ghost' : 'outline'} onClick={() => toggleSelectAll(values.materials, setFieldValue)} className='w-full'>
-                  {allSelected ? "Desmarcar todos" : "Seleccionar todos"}
-                </Button>
+                              ({athlete.dorsal}) - {athlete.displayName}
+                              {athlete.isDisqualified && <Ban className="h-4 w-4 ml-1 text-red-600" />}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {touched.athlete && errors.athlete && <p className="text-red-500 text-sm">{errors.athlete}</p>}
               </div>
-            )}
-            <Button disabled={sending || !values.athlete} type="submit" className="w-full">
-              {sending ? "Enviando..." : "Enviar"}
-            </Button>
-            {errorSending && <div className="text-red-500 text-justify">{errorSending}</div>}
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>¿Estás seguro de enviar la información?</DialogTitle>
-                  <p>Algunos materiales no han sido seleccionados</p>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button disabled={sending} variant="secondary" onClick={() => setOpenDialog(false)}>
-                    Cancelar
+
+              {values.athlete && (
+                <div className="space-y-6 border rounded-lg p-6">
+                  <h2 className="font-semibold text-center">Control de Material</h2>
+                  <div className="space-y-4">
+                    {materials.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-4">
+                        <Checkbox
+                          checked={values.materials[item.id]}
+                          onCheckedChange={(checked: boolean) =>
+                            setFieldValue(`materials.${item.id}`, checked)
+                          }
+                          id={item.id}
+                          className="h-5 w-5 cursor-pointer"
+                        />
+                        <label htmlFor={item.id} className="font-medium cursor-pointer">
+                          {item.name} {item.optional && <span className="text-gray-500 cursor-pointer">(opcional)</span>}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <Button type="button" variant={allSelected ? 'ghost' : 'outline'} onClick={() => toggleSelectAll(values.materials, setFieldValue)} className='w-full'>
+                    {allSelected ? "Desmarcar todos" : "Seleccionar todos"}
                   </Button>
-                  <Button disabled={sending} variant="default" onClick={confirmSubmit}>
-                    Confirmar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </Form>
-            </>
+                </div>
+              )}
+              <Button disabled={sending || !values.athlete} type="submit" className="w-full">
+                {sending ? "Enviando..." : "Enviar"}
+              </Button>
+
+              <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>¿Estás seguro de enviar la información?</DialogTitle>
+                    <p>Algunos materiales obligatorios no han sido seleccionados</p>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button disabled={sending} variant="secondary" onClick={() => setOpenDialog(false)}>
+                      Cancelar
+                    </Button>
+                    <Button disabled={sending} variant="default" onClick={confirmSubmit}>
+                      Confirmar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </Form>
+          </>
         );
       }}
     </Formik>
