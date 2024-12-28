@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
 import { RegionsComponent } from './RegionsComponent';
+import { toast } from 'sonner';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -25,11 +26,13 @@ const SkeletonLoader = () => (
     </div>
 );
 
+const setError = (error: string): void => {
+    toast.warning(error)
+}
+
 export default function NewFederationForm() {
     const [loading, setLoading] = React.useState(false);
     const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [regionKey, setRegionKey] = React.useState<number>(0);
     const { user: userState } = useUserState();
 
@@ -48,18 +51,15 @@ export default function NewFederationForm() {
                 }}
                 validationSchema={schema}
                 onSubmit={async (values, { resetForm }) => {
-                    setError('');
-                    setSubmited('');
                     try {
                         setSending(true);
                         const res = await api(userState.access_token).post(`/users/federation`, values);
-                        setSubmited('¡Éxito! Federación creada correctamente');
+                        toast.success('¡Éxito! Federación creada correctamente');
                         resetForm();
-                        setRegionKey((prevKey) => prevKey + 1); 
+                        setRegionKey((prevKey) => prevKey + 1);
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setError(errorMessage);
-                        else setError('Error desconocido');
+                        toast.error(errorMessage || 'Error al guardar los datos');
                     } finally {
                         setSending(false);
                     }
@@ -85,7 +85,7 @@ export default function NewFederationForm() {
                                 <div className="w-3/5 space-y-1">
                                     <Label htmlFor="region">Región</Label>
                                     <RegionsComponent
-                                        key={regionKey} 
+                                        key={regionKey}
                                         region={formik.values.region}
                                         setError={setError}
                                         setFieldValue={formik.setFieldValue}
@@ -112,11 +112,9 @@ export default function NewFederationForm() {
                             </div>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={sending}>
                             {sending ? 'Cargando...' : 'Crear usuario'}
                         </Button>
-                        {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
                 )}
             </Formik>
