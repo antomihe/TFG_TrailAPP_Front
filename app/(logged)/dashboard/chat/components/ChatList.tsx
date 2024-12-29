@@ -44,7 +44,7 @@ export function ChatList() {
                 let response;
                 switch (user.role) {
                     case RolesEnum.ATHLETE:
-                        response = await api(user.access_token).get(`/events/enroll/athlete`);
+                        response = await api(user.access_token).get(`/events/enroll/athlete/chat`);
                         setEvents(response.data || []);
                         break;
                     case RolesEnum.OFFICIAL:

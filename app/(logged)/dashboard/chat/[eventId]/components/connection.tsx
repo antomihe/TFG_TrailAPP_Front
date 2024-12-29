@@ -9,6 +9,7 @@ import api from '@/config/api';
 import Chat from './chat';
 import { H4 } from '@/components/ui';
 import RolesEnum from '@/enums/Roles.enum';
+import { toast } from 'sonner';
 
 let socket: Socket | null = null;
 
@@ -112,7 +113,7 @@ export default function Connection() {
             });
 
             socket?.on('error', (err) => {
-                setError(`Error de envío: ${err.message}`);
+                setError(`Error: ${err.message}`);
             });
 
             socket?.on('newMessage', (message: Message) => {
@@ -139,19 +140,26 @@ export default function Connection() {
     }
 
     return (
-        <div>
-            <div className='flex justify-between mx-4'>
-                <H4>{eventName}</H4>
-                <div>Conexión: {isConnected ? '✅ Conectado' : '❌ Desconectado'}</div>
+        <div className="p-4">
+            {/* Header */}
+            <div className="flex justify-between items-center mx-4 mb-4">
+                <H4 className="text-lg font-semibold">{eventName}</H4>
+                <div className="text-sm">
+                    Conexión: {isConnected ? '✅ Conectado' : '❌ Desconectado'}
+                </div>
             </div>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
 
-            {isConnected && (
+            {/* Error Message */}
+            {error && toast.error(error)
+            }
+
+            {/* Chat Component */}
+            <div className="flex flex-col space-y-4">
                 <Chat
                     userId={user.id}
                     messages={messages}
                     handleSend={({ message }: { message: string }) => {
-                        if (!message) return;
+                        if (!message.trim()) return;
                         const userMessage = {
                             message,
                             eventId,
@@ -160,7 +168,8 @@ export default function Connection() {
                         socket?.emit('sendMessage', userMessage);
                     }}
                 />
-            )}
+            </div>
         </div>
     );
+
 }
