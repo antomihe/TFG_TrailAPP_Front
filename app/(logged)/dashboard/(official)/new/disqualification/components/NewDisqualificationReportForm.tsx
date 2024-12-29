@@ -53,7 +53,7 @@ export default function NewDisqualificationReportForm() {
                 const loadEvent = await api(userState.access_token).get('events/jury/today');
                 setEvent({ id: loadEvent.data?.id, name: loadEvent.data?.name });
                 const eventId = loadEvent.data?.id;
-                const loadAthletes = await api(userState.access_token).get(`events/enroll/event/${eventId}`);
+                const loadAthletes = await api(userState.access_token).get(`events/disqualification/athletes/${eventId}`);
                 setAthletes(loadAthletes.data);
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;

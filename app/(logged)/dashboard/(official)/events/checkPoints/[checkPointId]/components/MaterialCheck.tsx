@@ -49,7 +49,7 @@ export default function MaterialCheck() {
             }))
         );
 
-        const loadAthletes = await api(user.access_token).get(`events/enroll/event/${response.data.eventId}`);
+        const loadAthletes = await api(user.access_token).get(`events/checks/${checkPointId}/athletes/${response.data.eventId}`);
         const materials = await Promise.all(materialsPromises);
 
         setMaterials(materials);
