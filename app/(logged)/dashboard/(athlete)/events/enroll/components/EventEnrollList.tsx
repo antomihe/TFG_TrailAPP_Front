@@ -27,7 +27,7 @@ interface Event {
 export default function EventsEnrollList() {
     function getPageSize() {
         if (window.innerWidth >= 1024) return 3; // Desktop
-        if (window.innerWidth >= 768) return 4; // Tablet
+        if (window.innerWidth >= 768) return 4 // Tablet
         return 3; // Mobile
     }
 

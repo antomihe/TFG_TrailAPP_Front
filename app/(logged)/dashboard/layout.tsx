@@ -1,6 +1,6 @@
 'use client'
 
-import React, { PropsWithChildren, useState, useEffect, use } from "react";
+import React, { PropsWithChildren, useState, useEffect } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { IconLayoutDashboard, IconUserBolt, IconMessages } from "@tabler/icons-react";
 import Link from "next/link";
@@ -11,7 +11,6 @@ import { LogoIcon as LogoIconComponent, ThemeIconButton } from "@/components/the
 import { useUserState } from "@/store/user/user.store";
 import { useRouter } from 'next/navigation'
 import { Footer } from "@/components/layout/footer";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export function Dashboard({ children }: PropsWithChildren) {
@@ -32,7 +31,7 @@ export function Dashboard({ children }: PropsWithChildren) {
     <div className={cn("flex flex-col md:flex-row w-full flex-1 max-w-full mx-auto md:overflow-hidden h-screen")}>
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 bg-accent rounded-tr-xl border-none">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col flex-1">
             {open ? <Logo /> : <LogoIcon />}
             <div className="mt-8 flex flex-col gap-2">
               {mainLinks.map((link, idx) => (
@@ -41,7 +40,6 @@ export function Dashboard({ children }: PropsWithChildren) {
             </div>
           </div>
           <div className="flex justify-between">
-
             <SidebarLink
               link={{
                 label: "Logout",
@@ -89,15 +87,8 @@ export const Logo = () => (
 );
 
 export const LogoIcon = () => (
-  <Link href="#" className="font-normal flex space-x-2 items-center text-sm py-1 relative z-20">
+  <Link href="/" className="font-normal flex space-x-2 items-center text-sm py-1 relative z-20">
     <LogoIconComponent className="h-5 w-6 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-    <Image
-      src="/logo.png"
-      alt="Acet Labs"
-      width={20}
-      height={24}
-      className="h-5 w-6 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0"
-    />
   </Link>
 );
 
@@ -120,18 +111,14 @@ const mainLinks = [
 ];
 
 const InnerDashboard = ({ children }: PropsWithChildren) => (
-  <div className="flex flex-col h-screen bg-inherit w-full">
-    <div className="pr-1 pl-2 h-screen md:pr-2 md:pl-10 md:pt-2 md:pb-2 rounded-tl-2xl border ">
-      <ScrollArea className="flex-1 pr-1 pt-2 md:pr-8 md:pt-8 w-full h-full overflow-y-auto">
-        <div className={cn("flex flex-col gap-2 h-full w-full")}>
-          <div className="flex-grow">{children}</div>
-          <Footer />
-        </div>
-      </ScrollArea>
+  <div className="flex flex-col flex-1 h-full bg-inherit w-full overflow-y-auto">
+    <div className="pr-1 pl-2 md:pr-2 md:pl-10 md:pt-2 md:pb-2 rounded-tl-2xl border flex-1">
+      <div className={cn("flex flex-col gap-2 h-full w-full")}>
+        <div className="flex-grow">{children}</div>
+        <Footer />
+      </div>
     </div>
   </div>
-
-
 );
 
 export default Dashboard;
