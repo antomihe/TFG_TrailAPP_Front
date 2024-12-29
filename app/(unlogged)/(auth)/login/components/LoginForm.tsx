@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Input, Label } from '@/components/ui/';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('Email no válido').required('Email es obligatorio'),
@@ -15,7 +15,6 @@ const schema = Yup.object().shape({
 
 export default function LoginForm() {
     const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
 
     return (
         <>
@@ -23,15 +22,13 @@ export default function LoginForm() {
                 initialValues={{ email: '', password: '' }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
-                    setError('');
                     setLoading(true);
                     try {
                         const res = await api().post('/auth/login', values);
                         useUserState.getState().login(res.data);
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setError(errorMessage);
-                        else setError('Error desconocido');
+                        toast.error(errorMessage || 'Error al iniciar sesión')
                     } finally {
                         setLoading(false);
                     }
@@ -72,9 +69,7 @@ export default function LoginForm() {
                                     <p className="text-red-500 text-sm">{formik.errors.password}</p>
                                 )}
                             </div>
-                            {error && (
-                                <p className="text-red-500 text-sm">{error}</p>
-                            )}
+
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading ? 'Cargando...' : 'Iniciar sesión'}
                             </Button>
