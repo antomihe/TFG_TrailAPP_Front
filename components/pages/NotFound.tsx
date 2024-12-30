@@ -10,7 +10,7 @@ const NotFound = () => {
           <Image src="/404.png" alt="404" width={500} height={500} />
         </div>
         <p className="text-2xl md:text-3xl font-light leading-normal mt-5">
-          Lo sentimos, no hemos encontrar la página que buscas.
+          Lo sentimos, no hemos encontrado la página que buscas.
         </p>
 
         <Link href="/" passHref>

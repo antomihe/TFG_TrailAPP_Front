@@ -17,7 +17,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Athlete } from '../../../../new/disqualification/components/NewDisqualificationReportForm';
 import { toast } from 'sonner';
 
-export default function MaterialControl() {
+export default function MaterialCheck() {
   const [loading, setLoading] = useState<boolean>(true);
   const [errorLoading, setErrorLoading] = useState<string | null>(null);
   const [sending, setSending] = useState<boolean>(false);
@@ -29,14 +29,14 @@ export default function MaterialControl() {
   const [allSelected, setAllSelected] = useState<boolean>(false);
   const [athleteMaterial, setAthleteMaterial] = useState<string[]>([]);
   const { user } = useUserState();
-  const { controlId } = useParams();
+  const { checkPointId } = useParams();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        const response = await api(user.access_token).get(`events/control/${controlId}`);
+        const response = await api(user.access_token).get(`events/checkPoints/${checkPointId}`);
         const materialIds = response.data.material;
 
         const materialsPromises = materialIds.map((materialId: string) =>
@@ -64,7 +64,7 @@ export default function MaterialControl() {
     };
 
     fetchData();
-  }, [controlId]);
+  }, [checkPointId]);
 
   interface FormValues {
     materials: { [key: string]: boolean };
@@ -85,7 +85,7 @@ export default function MaterialControl() {
         .filter(([, selected]) => selected)
         .map(([name]) => name);
 
-      await api(user.access_token).post(`events/checks/${controlId}`, {
+      await api(user.access_token).post(`events/checks/${checkPointId}`, {
         athlete: values.athlete,
         material: selectedMaterials,
       });
@@ -165,7 +165,7 @@ export default function MaterialControl() {
         useEffect(() => {
           const fetchEquipment = async () => {
             if (values.athlete) {
-              const response = await api(user.access_token).get(`events/checks/${controlId}/equipment/${values.athlete}`);
+              const response = await api(user.access_token).get(`events/checks/${checkPointId}/equipment/${values.athlete}`);
               const ahtleteMaterials = await response.data.material;
               setAthleteMaterial(ahtleteMaterials);
 

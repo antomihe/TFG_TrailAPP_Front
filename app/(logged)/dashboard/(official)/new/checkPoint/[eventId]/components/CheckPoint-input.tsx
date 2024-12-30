@@ -7,26 +7,25 @@ import api from '@/config/api';
 
 import { X } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { ControlType } from './ControlForm';
+import { CheckPointType } from './CheckPointForm';
 
 type ControlItem = {
     name: string;
     distances: number[];
     material: string[];
-    type: ControlType;
+    type: CheckPointType;
     kmPosition?: number;
 };
 
 import { Skeleton } from '@/components/ui';
-import { set } from 'date-fns';
 
 type Props = {
     values: any[];
     setValues: (values: any[]) => void;
     distances: number[];
     material: { id: string; optional: boolean, name: string }[];
-    postControl: (control: any) => Promise<any>;
-    deleteControl: (id: string) => Promise<void>;
+    nextCheckPoint: (control: any) => Promise<any>;
+    deleteCheckPoint: (id: string) => Promise<void>;
     user: { access_token: string };
     errorSending: string | null;
 };
@@ -39,19 +38,19 @@ type Errors = {
     [key: string]: string;
 };
 
-export default function ControlInput({
+export default function CheckPointInput({
     values,
     setValues,
     distances,
     material,
-    postControl,
-    deleteControl,
+    nextCheckPoint,
+    deleteCheckPoint,
     user,
     errorSending,
 }: Props) {
     const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
     const [name, setName] = useState<string>('');
-    const [controlType, setControlType] = useState<string | undefined>(undefined);
+    const [checkPointTypeSelected, setCheckPointTypeSelectedType] = useState<string | undefined>(undefined);
     const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
     const [selectedMaterial, setSelectedMaterial] = useState<string[]>([]);
     const [kmPosition, setKmPosition] = useState<number | undefined>(undefined);
@@ -61,24 +60,24 @@ export default function ControlInput({
 
     useEffect(() => {
         setButtonDisabled(
-            controlType === undefined ||
+            checkPointTypeSelected === undefined ||
             name.trim() === '' ||
             selectedDistances.length === 0 ||
             selectedMaterial.length === 0 ||
-            ((controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG)
+            ((checkPointTypeSelected === CheckPointType.CONTROL || checkPointTypeSelected === CheckPointType.LIFEBAG)
                 ? kmPosition === undefined
                 : kmPosition !== undefined
             )
         );
-    }, [name, values, selectedDistances, kmPosition, selectedMaterial, controlType]);
+    }, [name, values, selectedDistances, kmPosition, selectedMaterial, checkPointTypeSelected]);
 
     useEffect(() => {
-        if (controlType === 'START' || controlType === 'FINISH') {
-            setName(controlType);
+        if (checkPointTypeSelected === 'START' || checkPointTypeSelected === 'FINISH') {
+            setName(checkPointTypeSelected);
         } else {
             setName('');
         }
-    }, [controlType]);
+    }, [checkPointTypeSelected]);
 
     useEffect(() => {
         const fetchMaterialDetails = async () => {
@@ -96,17 +95,17 @@ export default function ControlInput({
     }, [material, user.access_token]);
 
     useEffect(() => {
-        if (controlType === ControlType.START) {
-            setName(controlType);
+        if (checkPointTypeSelected === CheckPointType.START) {
+            setName(checkPointTypeSelected);
             setKmPosition(undefined);
             setSelectedMaterial(material.map((item) => item.id));
-        } else if (controlType === ControlType.FINISH) {
-            setName(controlType);
+        } else if (checkPointTypeSelected === CheckPointType.FINISH) {
+            setName(checkPointTypeSelected);
             setKmPosition(undefined);
         } else {
             setName('');
         }
-    }, [controlType]);
+    }, [checkPointTypeSelected]);
 
     const addTag = async () => {
         const trimmedName = name.trim();
@@ -123,7 +122,7 @@ export default function ControlInput({
             newErrors.material = 'Debes seleccionar al menos un material';
         } 
         
-        if (controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG) {
+        if (checkPointTypeSelected === CheckPointType.CONTROL || checkPointTypeSelected === CheckPointType.LIFEBAG) {
             if (kmPosition === undefined) {
                 newErrors.kmPosition = 'La posición en km es obligatoria';
             }
@@ -133,7 +132,7 @@ export default function ControlInput({
             }
         } 
         
-        if (controlType === ControlType.LIFEBAG) {
+        if (checkPointTypeSelected === CheckPointType.LIFEBAG) {
             console.log('lifebag');
             for (const m in material) {
                 if (material[m].optional && !selectedMaterial.includes(material[m].id)) {
@@ -149,17 +148,17 @@ export default function ControlInput({
                 name: trimmedName,
                 distances: selectedDistances,
                 material: selectedMaterial,
-                type: controlType as ControlType,
+                type: checkPointTypeSelected as CheckPointType,
                 kmPosition: kmPosition,
             };
 
-            const id = await postControl(newControl);
+            const id = await nextCheckPoint(newControl);
 
             setValues([
                 ...values,
                 { ...newControl, id },
             ]);
-            setControlType(undefined);
+            setCheckPointTypeSelectedType(undefined);
             setName('');
             setSelectedDistances([]);
             setSelectedMaterial([]);
@@ -170,7 +169,7 @@ export default function ControlInput({
 
     const removeTag = async (index: number) => {
         const updatedValues = values.filter((_, i) => i !== index);
-        await deleteControl(values[index].id!);
+        await deleteCheckPoint(values[index].id!);
         setValues(updatedValues);
     };
 
@@ -188,22 +187,22 @@ export default function ControlInput({
         <div className="space-y-4">
             <div className="space-y-4 border-2 rounded-lg p-4">
                 <Select
-                    value={controlType}
-                    onValueChange={(value: string | undefined) => setControlType(value)}
+                    value={checkPointTypeSelected}
+                    onValueChange={(value: string | undefined) => setCheckPointTypeSelectedType(value)}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona un tipo de control" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value={ControlType.START}>{ControlType.START}</SelectItem>
-                        <SelectItem value={ControlType.CONTROL}>{ControlType.CONTROL}</SelectItem>
-                        <SelectItem value={ControlType.LIFEBAG}>{ControlType.LIFEBAG}</SelectItem>
-                        <SelectItem value={ControlType.FINISH}>{ControlType.FINISH}</SelectItem>
+                        <SelectItem value={CheckPointType.START}>{CheckPointType.START}</SelectItem>
+                        <SelectItem value={CheckPointType.CONTROL}>{CheckPointType.CONTROL}</SelectItem>
+                        <SelectItem value={CheckPointType.LIFEBAG}>{CheckPointType.LIFEBAG}</SelectItem>
+                        <SelectItem value={CheckPointType.FINISH}>{CheckPointType.FINISH}</SelectItem>
                     </SelectContent>
                 </Select>
 
 
-                {controlType && (
+                {checkPointTypeSelected && (
                     <>
                         {/* Nombre */}
                         <div className="flex flex-col">
@@ -221,7 +220,7 @@ export default function ControlInput({
                         </div>
 
                         {/* Punto kilométrico */}
-                        {(controlType === ControlType.CONTROL || controlType === ControlType.LIFEBAG) && (
+                        {(checkPointTypeSelected === CheckPointType.CONTROL || checkPointTypeSelected === CheckPointType.LIFEBAG) && (
                             <div className="flex flex-col">
                                 <label htmlFor="kmPosition" className="text-sm font-medium text-gray-700">
                                     Punto kilométrico
@@ -255,7 +254,7 @@ export default function ControlInput({
                         </div>
 
                         {/* Selección de material */}
-                        {(controlType !== ControlType.START) && (
+                        {(checkPointTypeSelected !== CheckPointType.START) && (
                             <div className="flex flex-col">
                                 <label htmlFor="material" className="text-sm font-medium text-gray-700">
                                     Material
@@ -301,7 +300,7 @@ export default function ControlInput({
                                 <span className="font-semibold">Distancias: </span>
                                 {control.distances.join(', ')} km
                             </p>
-                            {(control.type === ControlType.CONTROL || control.type === ControlType.LIFEBAG) && (
+                            {(control.type === CheckPointType.CONTROL || control.type === CheckPointType.LIFEBAG) && (
                                 <p>
                                     <span className="font-semibold">Punto kilométrico: </span>
                                     {control.kmPosition} km
