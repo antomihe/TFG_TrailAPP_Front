@@ -50,7 +50,7 @@ export default function EventsEnrollList() {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const res = await api(user.access_token).get(`events/enroll/athlete`);
+                const res = await api(user.access_token).get(`events/enroll/athlete/future`);
                 setEvents(res.data);
                 setFilteredEvents(res.data);
             } catch (err) {
@@ -130,8 +130,8 @@ export default function EventsEnrollList() {
                                         }
 
                                     } catch (err) {
-                                        console.error(err);
-                                        setFieldError('distance', 'Ha ocurrido un error');
+                                        const errorMessage = (err as any)?.response?.data?.message || 'Ha ocurrido un error';
+                                        setFieldError('distance', errorMessage );
                                     } finally {
                                         setSending(false);
                                     }
