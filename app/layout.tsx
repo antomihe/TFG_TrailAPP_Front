@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { inter } from '@/config/fonts';
 import { ThemeProvider } from "@/components/theme/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+
 
 import './globals.css';
 
@@ -19,13 +21,14 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
           {children}
         </ThemeProvider>
+        <Toaster position='top-right' expand={false} richColors closeButton />
       </body>
     </html>
   )
