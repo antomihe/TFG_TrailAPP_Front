@@ -63,7 +63,7 @@ export default function EventsOrganizerList() {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const res = await api(user.access_token).get(`events/organizer/${user.id}`);
+                const res = await api(user.access_token).get(`events/organizer/future/${user.id}`);
                 setEvents(res.data);
             } catch (err) {
                 console.error(err);

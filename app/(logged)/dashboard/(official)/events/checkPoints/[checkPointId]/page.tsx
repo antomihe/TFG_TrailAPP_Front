@@ -1,13 +1,12 @@
 import { Head } from "@/components/layout";
-import MaterialControl from "./components/MaterialControl";
+import MaterialCheck from "./components/MaterialCheck";
 
 export default function NewEventPage() {
     return (
         <>
             <Head title="Eventos" subtitle="Realizar control de material" />
 
-            <MaterialControl />
-
+            <MaterialCheck />
         </>
     )
 }

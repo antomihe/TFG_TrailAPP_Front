@@ -5,8 +5,9 @@ import { Button, Skeleton } from '@/components/ui/';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
 import { useParams } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'; // Importar componentes de card de shadcn
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { timeFormatter } from '@/lib/utils';
+import { toast } from 'sonner';
 
 
 const SkeletonLoader = () => (
@@ -57,7 +58,7 @@ export default function DisqualificationForm() {
             setDisqualification({ ...disqualification, reviewedByReferee: true });
         } catch (error) {
             const errorMessage = (error as any)?.response?.data?.message;
-            setErrorLoading(errorMessage || 'Error desconocido');
+            toast.error(errorMessage || 'Error desconocido');
         }
     };
 

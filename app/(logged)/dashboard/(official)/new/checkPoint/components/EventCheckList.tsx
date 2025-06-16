@@ -50,7 +50,7 @@ interface Event {
 
 const PAGE_SIZE = 4;
 
-export default function ControlList() {
+export default function EventCheckList() {
     const router = useRouter();
     const user = useUserState().user;
     const [events, setEvents] = useState<Event[]>([]);
@@ -141,10 +141,10 @@ export default function ControlList() {
                 return (
                     <div className="flex space-x-2 justify-end">
                         <Button
-                            onClick={() => router.push(`/dashboard/new/control/${event.id}`)}
+                            onClick={() => router.push(`/dashboard/new/checkPoint/${event.id}`)}
                             variant="outline"
                             className="flex items-center bg-transparent border-primary"
-                            onMouseEnter={() => router.prefetch(`/dashboard/new/control/${event.id}`)}
+                            onMouseEnter={() => router.prefetch(`/dashboard/new/checkPoint/${event.id}`)}
                         >
                             <Wrench className="mr-2 h-4 w-4" /> Puntos de control
                         </Button>

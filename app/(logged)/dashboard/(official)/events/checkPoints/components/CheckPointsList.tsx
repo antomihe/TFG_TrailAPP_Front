@@ -3,25 +3,25 @@
 import React, { useEffect, useState } from 'react';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
-import { ControlItem, ControlType } from '../../../new/control/[eventId]/components/ControlForm';
 import { Button, Card, CardTitle, Skeleton } from '@/components/ui';
 import { CardContent, CardHeader } from '@/components/ui/card';
 import { NotebookPen } from 'lucide-react';
-import { MaterialDetails } from '../../../new/control/[eventId]/components/Control-input';
+import { MaterialDetails } from '../../../new/checkPoint/[eventId]/components/CheckPoint-input';
 import { AlertComponent } from '@/components/ui/alert-component';
 import Link from 'next/link';
+import { CheckPointItem, CheckPointType } from '../../../new/checkPoint/[eventId]/components/CheckPointForm';
 
 interface Event {
     id: string;
 }
 
 
-export default function ControlList() {
+export default function CheckPointsList() {
     const [event, setEvent] = useState<Event>();
     const [loading, setLoading] = useState<boolean>(true);
     const [errorLoading, setErrorLoading] = useState<string | null>(null);
     const [materialLoading, setMaterialLoading] = useState<boolean>(true);
-    const [controls, setControls] = useState<ControlItem[]>([]);
+    const [controls, setControls] = useState<CheckPointItem[]>([]);
     const [materialDetails, setMaterialDetails] = useState<MaterialDetails>({});
 
 
@@ -32,7 +32,7 @@ export default function ControlList() {
             setLoading(true);
             try {
                 const loadEvent = await api(user.access_token).get(`events/jury/today`);
-                const loadControls = await api(user.access_token).get(`events/control/event/${loadEvent.data.id}`);
+                const loadControls = await api(user.access_token).get(`events/checkPoints/event/${loadEvent.data.id}`);
 
                 setEvent(await loadEvent.data);
                 setControls(await loadControls.data);
@@ -91,30 +91,30 @@ export default function ControlList() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {controls.map((control: any, index: number) => (
+            {controls.map((checkPoint: any, index: number) => (
                 <Card
                     key={index}
                     className="relative border shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
                 >
-                    <Link href={`/dashboard/events/control/${control.id}`}>
+                    <Link href={`/dashboard/events/checkPoints/${checkPoint.id}`}>
                         <CardHeader className=" border-b bg-primary-foreground rounded-lg">
                             <CardTitle className="text-lg font-medium ">
-                                {control.name}
+                                {checkPoint.name}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 ">
                             <p>
                                 <span className="font-semibold ">Tipo de punto de control: </span>
-                                {control.type}
+                                {checkPoint.type}
                             </p>
                             <p>
                                 <span className="font-semibold">Distancias: </span>
-                                {control.distances.join(', ')} km
+                                {checkPoint.distances.join(', ')} km
                             </p>
-                            {(control.type === ControlType.CONTROL || control.type === ControlType.LIFEBAG) && (
+                            {(checkPoint.type === CheckPointType.CONTROL || checkPoint.type === CheckPointType.LIFEBAG) && (
                                 <p>
                                     <span className="font-semibold">Punto kilométrico: </span>
-                                    {control.kmPosition} km
+                                    {checkPoint.kmPosition} km
                                 </p>
                             )}
                             {materialLoading ? (
@@ -125,7 +125,7 @@ export default function ControlList() {
                             ) : (
                                 <p>
                                     <span className="font-semibold ">Material: </span>
-                                    {control.material.map((id: string) => materialDetails[id]).join(', ')}
+                                    {checkPoint.material.map((id: string) => materialDetails[id]).join(', ')}
                                 </p>
                             )}
                         </CardContent>

@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
 import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { DateInput } from '@/components/ui/dateInput';
 
 const schema = Yup.object().shape({
@@ -30,8 +31,6 @@ export default function EditElementForm() {
     const params = useParams();
     const [loading, setLoading] = React.useState(false);
     const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [event, setEvent] = React.useState<any>(null);
     const [province, setProvince] = React.useState<string>('Cargando...');
     const [location, setLocation] = React.useState<string>('Cargando...');
@@ -50,7 +49,7 @@ export default function EditElementForm() {
                 setOrganizer(res.data.organizer);
                 setEvent(res.data);
             } catch (error) {
-                setError('Error al cargar los datos');
+                toast.warning('Error al cargar los datos');
             } finally {
                 setLoading(false);
             }
@@ -73,18 +72,15 @@ export default function EditElementForm() {
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
                     setSending(true);
                     try {
                         const { eventId } = params;
                         await api(userState.access_token).patch(`/events/${eventId}`, values);
                         setLoading(false);
-                        setSubmited('¡Éxito! Los datos han sido actualizados');
+                        toast.info('¡Éxito! Los datos han sido actualizados');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setError(errorMessage);
-                        else setError('Error desconocido');
+                        toast.error(errorMessage || 'Error desconocido');
                     } finally {
                         setSending(false);
                     }
@@ -168,11 +164,9 @@ export default function EditElementForm() {
                             </div>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={sending}>
                             {sending ? 'Cargando...' : 'Editar perfil'}
                         </Button>
-                        {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
                 )}
             </Formik>

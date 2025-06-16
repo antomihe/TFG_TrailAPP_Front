@@ -1,35 +1,38 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Skeleton } from '@/components/ui/';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
-import EquipmentInput from './equipment-input';
 import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
+import EquipmentInput from './EquipmentInput';
+import EquipmentList from './EquipmentList';
 
 const schema = Yup.object().shape({
-    equipment: Yup.array().of(Yup.object().shape({
-        name: Yup.string().required('El nombre es obligatorio'),
-        optional: Yup.boolean(),
-    })),
+    equipment: Yup.array().of(
+        Yup.object().shape({
+            name: Yup.string().required('El nombre es obligatorio'),
+            optional: Yup.boolean(),
+            removed: Yup.boolean(),
+        })
+    ),
 });
 
 interface EquipmentItem {
     name: string;
     optional: boolean;
+    removed?: boolean;
 }
 
 export default function EquipmentForm() {
-    const [equipment, setEquipment] = React.useState<EquipmentItem[]>([]);
-    const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [loading, setLoading] = React.useState(true);
-    const [errorLoading, setErrorLoading] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
+    const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
+    const [sending, setSending] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [errorLoading, setErrorLoading] = useState<string>('');
     const { eventId } = useParams();
-
     const { user: userState } = useUserState();
 
     useEffect(() => {
@@ -37,7 +40,7 @@ export default function EquipmentForm() {
             setLoading(true);
             try {
                 const loadEquipment = await api(userState.access_token).get(`events/equipment/event/${eventId}`);
-                setEquipment(await loadEquipment.data);
+                setEquipment(loadEquipment.data.map((item: EquipmentItem) => ({ ...item, removed: false })));
             } catch (error) {
                 const errorMessage = (error as any)?.response?.data?.message;
                 setErrorLoading(errorMessage || 'Error desconocido');
@@ -55,64 +58,56 @@ export default function EquipmentForm() {
     );
 
     if (loading) {
-        return <SkeletonLoader />
+        return <SkeletonLoader />;
     }
 
     if (errorLoading) {
-        return <p className="text-red-500 text-sm mt-4 text-center">{errorLoading}</p>
+        return <p className="text-red-500 text-sm mt-4 text-center">{errorLoading}</p>;
     }
 
     return (
         <div className="max-w-4xl mx-auto p-4">
             <Formik
                 enableReinitialize
-                initialValues={{
-                    equipment: equipment || [],
-                }}
+                initialValues={{ equipment }}
                 validationSchema={schema}
-                onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
+                onSubmit={async (values, { setFieldValue }) => {
                     try {
                         setSending(true);
                         const req = {
-                            equipment: values.equipment.map((item) => ({
-                                name: item.name,
-                                optional: item.optional,
-                            })),
-                        }
+                            equipment: values.equipment
+                                .filter(item => !item.removed)
+                                .map(({ name, optional }) => ({ name, optional })),
+                        };
                         await api(userState.access_token).post(`/events/equipment/${eventId}`, req);
-                        setSubmited('¡Éxito! Material añadido');
+                        toast.success('¡Éxito! Material guardado');
+                        setFieldValue('equipment', values.equipment.filter(item => !item.removed));
+
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        setError(errorMessage || 'Error desconocido');
+                        toast.error(errorMessage || 'Error: material no guardado');
                     } finally {
                         setSending(false);
                     }
                 }}
             >
-                {({ values, touched, errors, setFieldTouched, setFieldValue }) => (
+                {({ values, setFieldValue, setFieldTouched }) => (
                     <Form>
-                        <div className="space-y-2">
-                            <div className="space-y-1">
-                                <EquipmentInput
-                                    setFieldValue={setFieldValue}
-                                    setFieldTouched={setFieldTouched}
-                                    setSubmitted={setSubmited}
-                                    values={values.equipment}
-                                />
-                                {touched.equipment && errors.equipment && (
-                                    <p className="text-red-500 text-sm">{Array.isArray(errors.equipment) ? errors.equipment.join(', ') : errors.equipment}</p>
-                                )}
-                            </div>
-
+                        <div className="space-y-5">
+                            <EquipmentInput
+                                setFieldValue={setFieldValue}
+                                setFieldTouched={setFieldTouched}
+                                values={values.equipment}
+                            />
+                            <EquipmentList
+                                values={values.equipment}
+                                setFieldValue={setFieldValue}
+                            />
                         </div>
 
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={sending}>
                             {sending ? 'Cargando...' : 'Guardar'}
                         </Button>
-                        {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
                 )}
             </Formik>

@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import ControlInput from './Control-input';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
 import { useParams } from 'next/navigation';
 import { H2 } from '@/components/ui';
+import CheckPointInput from './CheckPoint-input';
 
-export type ControlItem = {
+export type CheckPointItem = {
     id?: string;
     name: string;
     distances: number[];
@@ -23,17 +23,17 @@ export type MaterialItem = {
     optional: boolean;
 };
 
-export enum ControlType {
+export enum CheckPointType {
     'START' = 'Salida',
     'CONTROL' = 'Punto de control',
     'LIFEBAG' = 'Bolsa de vida',
     'FINISH' = 'Meta'
 }
 
-export default function ControlForm() {
+export function CheckPointForm() {
     const [distances, setDistances] = useState<number[]>([]);
     const [material, setMaterial] = useState<MaterialItem[]>([]);
-    const [controls, setControls] = useState<ControlItem[]>([]);
+    const [checkPoints, setcheckPoints] = useState<CheckPointItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [errorLoading, setErrorLoading] = useState<string | null>(null);
     const [errorSending, setErrorSending] = useState<string | null>(null);
@@ -44,8 +44,8 @@ export default function ControlForm() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const loadControls = await api(user.access_token).get(`events/control/event/${eventId}`);
-                setControls(loadControls.data);
+                const loadcheckPoints = await api(user.access_token).get(`events/checkPoints/event/${eventId}`);
+                setcheckPoints(loadcheckPoints.data);
 
                 const loadEvent = await api(user.access_token).get(`events/${eventId}`);
                 setDistances(loadEvent.data.distances);
@@ -67,10 +67,10 @@ export default function ControlForm() {
         fetchData();
     }, [eventId]);
 
-    const postControl = async (data: ControlItem): Promise<string> => {
+    const nextCheckPoint = async (data: CheckPointItem): Promise<string> => {
         setErrorSending(null);
         try {
-            const response = await api(user.access_token).post(`events/control/${eventId}`, data);
+            const response = await api(user.access_token).post(`events/checkPoints/${eventId}`, data);
             return response.data.id;
         } catch (error) {
             const errorMessage = (error as any)?.response?.data?.message;
@@ -79,10 +79,10 @@ export default function ControlForm() {
         }
     }
 
-    const deleteControl = async (controlId: string) => {
+    const deletecheckPoint = async (checkPointId: string) => {
         setErrorSending(null);
         try {
-            await api(user.access_token).delete(`events/control/${controlId}`);
+            await api(user.access_token).delete(`events/checkPoints/${checkPointId}`);
         } catch (error) {
             const errorMessage = (error as any)?.response?.data?.message;
             setErrorSending(errorMessage || 'Error desconocido');
@@ -105,17 +105,17 @@ export default function ControlForm() {
                 <SkeletonLoader />
             ) : (
                 <>
-                    <H2>Controles</H2>
-                    <ControlInput
-                        values={controls}
-                        setValues={setControls}
+                    <H2>Puntos de control</H2>
+                    <CheckPointInput
+                        values={checkPoints}
+                        setValues={setcheckPoints}
                         distances={distances}
                         material={material}
-                        postControl={postControl}
-                        deleteControl={deleteControl}
+                        nextCheckPoint={nextCheckPoint}
+                        deleteCheckPoint={deletecheckPoint}
+                        errorSending={errorSending}
                         user={user}
                     />
-                    {errorSending && <div className="text-red-500">{errorSending}</div>}
                 </>
             )}
         </div>

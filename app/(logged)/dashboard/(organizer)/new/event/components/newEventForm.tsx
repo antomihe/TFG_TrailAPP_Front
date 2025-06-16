@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button, Input, Label } from '@/components/ui/';
 import { Formik, Form } from 'formik';
+import { toast } from "sonner"
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
@@ -34,10 +35,12 @@ const schema = Yup.object().shape({
         )
 });
 
+const showError = (message: string): void => {
+    toast.error(message);
+};
+
 export default function NewEventForm() {
     const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [province] = React.useState<string>('');
     const [location] = React.useState<string>('');
 
@@ -55,16 +58,15 @@ export default function NewEventForm() {
                     distances: [],
                 }}
                 validationSchema={schema}
-                onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
+                onSubmit={async (values, { resetForm }) => {
                     try {
                         setSending(true);
                         await api(userState.access_token).post(`/events`, values);
-                        setSubmited('¡Éxito! Evento creado');
+                        toast.success('¡Éxito! Evento creado');
+                        resetForm();
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        setError(errorMessage || 'Error desconocido');
+                        showError(errorMessage || 'Error desconocido');
                     } finally {
                         setSending(false);
                     }
@@ -103,7 +105,7 @@ export default function NewEventForm() {
                             <div className="space-y-1">
                                 <Label htmlFor="province">Provincia</Label>
                                 <ProvincesComponent
-                                    setError={setError}
+                                    setError={showError}
                                     province={values.province}
                                     location={values.location}
                                     setFieldTouched={setFieldTouched}
@@ -120,7 +122,7 @@ export default function NewEventForm() {
                                     <div className="space-y-1">
                                         <Label htmlFor="location">Localidad</Label>
                                         <LocationComponent
-                                            setError={setError}
+                                            setError={showError}
                                             province={values.province}
                                             location={values.location}
                                             setFieldTouched={setFieldTouched}
@@ -146,11 +148,9 @@ export default function NewEventForm() {
 
                         </div>
 
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={sending}>
                             {sending ? 'Cargando...' : 'Crear evento'}
                         </Button>
-                        {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
                 )}
             </Formik>

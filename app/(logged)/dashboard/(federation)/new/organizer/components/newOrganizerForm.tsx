@@ -6,7 +6,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import api from '@/config/api';
 import { useUserState } from '@/store/user/user.store';
-import { set } from 'date-fns';
+import { toast } from 'sonner';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -28,18 +28,19 @@ const SkeletonLoader = () => (
 export default function NewOrganizerForm() {
     const [loading, setLoading] = React.useState(false);
     const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [fedCode, setFedCode] = React.useState<string>('');
     const { user: userState } = useUserState();
 
     React.useEffect(() => {
         const fetchFederations = async () => {
+            setLoading(true);
             try {
                 const res = await api(userState.access_token).get(`users/federation/id/${userState.id}`);
                 setFedCode(res.data.code || '');
             } catch (error) {
                 console.error('Error fetching federation code:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -58,16 +59,15 @@ export default function NewOrganizerForm() {
                     federationCode: fedCode,
                 }}
                 validationSchema={schema}
-                onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
+                onSubmit={async (values, {resetForm}) => {
                     try {
                         setSending(true);
                         await api(userState.access_token).post(`/users/organizer`, values);
-                        setSubmited('¡Éxito! Tus datos han sido actualizados');
+                        toast.success('¡Éxito! Nuevo organizador creado');
+                        resetForm();
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        setError(errorMessage || 'Error desconocido');
+                        toast.error(errorMessage || 'Error desconocido');
                     } finally {
                         setSending(false);
                     }
@@ -112,11 +112,9 @@ export default function NewOrganizerForm() {
                             </div>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                         <Button type="submit" className="w-full mt-6" disabled={sending}>
                             {sending ? 'Cargando...' : 'Crear usuario'}
                         </Button>
-                        {submited && <p className="text-green-600 text-sm mt-2">{submited}</p>}
                     </Form>
                 )}
             </Formik>

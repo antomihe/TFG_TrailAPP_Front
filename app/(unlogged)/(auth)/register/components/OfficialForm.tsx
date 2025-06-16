@@ -11,6 +11,7 @@ import { Check, ChevronsUpDown } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -26,8 +27,6 @@ export default function OfficialForm() {
     const [loading, setLoading] = React.useState(false);
     const [federations, setFederations] = React.useState<{ code: string, displayName: string }[]>([]);
     const [federationsError, setFederationsError] = React.useState<string | null>(null);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
     const [open, setOpen] = React.useState(false);
 
     useEffect(() => {
@@ -56,15 +55,13 @@ export default function OfficialForm() {
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
                     setLoading(true);
                     try {
                         const res = await api().post('/users/official', values);
-                        setSubmited('¡Éxito! Compruebe su correo electrónico para confirmar su cuenta');
+                        toast.success('¡Éxito! Compruebe su correo electrónico para confirmar su cuenta')
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        setError(errorMessage || 'Error desconocido');
+                        toast.error(errorMessage || 'Error al registrar el usuario');
                     } finally {
                         setLoading(false);
                     }
@@ -160,15 +157,11 @@ export default function OfficialForm() {
                                 )}
                             </div>
                         </div>
-                        {error && (
-                            <p className="text-red-500 text-sm mt-4">{error}</p>
-                        )}
+
                         <Button type="submit" className="w-full mt-6" disabled={loading}>
                             {loading ? 'Cargando...' : 'Registrarse'}
                         </Button>
-                        {submited && (
-                            <p className="text-green-600 text-sm mt-2">{submited}</p>
-                        )}
+
                     </Form>
                 )}
             </Formik>

@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/alert";
 import { ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { toNamespacedPath } from "path/win32";
 
 const validationSchema = Yup.object().shape({
     judges: Yup.array().of(
@@ -67,8 +69,6 @@ export default function JuryForm() {
     const [jury, setJury] = useState<Judge[]>([]);
     const [error, setError] = useState<string>('');
     const [sending, setSending] = useState<boolean>(false);
-    const [success, setSuccess] = useState<string>('');
-    const [sendingError, setSendingError] = useState<string>('');
     const [openPopovers, setOpenPopovers] = useState<boolean[]>([]);
 
     useEffect(() => {
@@ -137,8 +137,6 @@ export default function JuryForm() {
                 onSubmit={async (values) => {
                     try {
                         setSending(true);
-                        setSuccess('');
-                        setSendingError('');
 
                         const req = {
                             juries: values.judges
@@ -166,11 +164,10 @@ export default function JuryForm() {
 
                         remainingJudges.forEach(judge => judge.isNational ? judge.canEdit = true : judge.canEdit = false);
 
-                        setSuccess('Guardado correctamente');
+                        toast.success('Guardado correctamente');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setSendingError(errorMessage);
-                        else setSendingError('Error desconocido');
+                        toast.error(errorMessage || 'Error al guardar los datos');
                     } finally {
                         setSending(false);
                     }
@@ -326,17 +323,6 @@ export default function JuryForm() {
                     );
                 }}
             </Formik >
-            {success && (
-                <div className="text-green-500 mt-4">
-                    {success}
-                </div>
-            )}
-            {sendingError && (
-                <div className="text-red-500 mt-4">
-                    {sendingError}
-                </div>
-            )
-            }
         </div >
     );
 }

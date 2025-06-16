@@ -4,11 +4,12 @@ import React from 'react';
 import { Label, Input } from '@/components/ui'
 import { Button } from '@/components/ui';
 
-import { Formik, Form, replace } from 'formik';
+import { Formik, Form } from 'formik';
 
 import api from '@/config/api';
 
 import * as Yup from 'yup';
+import { toast } from 'sonner';
 
 const schema = Yup.object().shape({
     email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
@@ -69,9 +70,6 @@ const schema = Yup.object().shape({
 export default function AthleteForm() {
 
     const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState<string>('');
-    const [submited, setSubmited] = React.useState<string>('');
-
 
     return (
         <>
@@ -84,18 +82,15 @@ export default function AthleteForm() {
                 }}
                 validationSchema={schema}
                 onSubmit={async (values) => {
-                    setError('');
-                    setSubmited('');
                     setLoading(true);
                     try {
                         setLoading(true);
                         const res = await api().post('/users/athlete', values);
                         setLoading(false);
-                        setSubmited('¡Exito! Compruebe su correo electrónico para confirmar su cuenta');
+                        toast.success('¡Exito! Compruebe su correo electrónico para confirmar su cuenta');
                     } catch (error) {
                         const errorMessage = (error as any)?.response?.data?.message;
-                        if (errorMessage) setError(errorMessage);
-                        else setError('Error desconocido');
+                        toast.error(errorMessage || 'Error al registrar el usuario');
                     } finally {
                         setLoading(false);
                     }
@@ -155,7 +150,7 @@ export default function AthleteForm() {
                                         onInput={e => {
                                             const input = e.target as HTMLInputElement;
                                             input.value = input.value
-                                                .replace(/[^0-9/]/g, '') 
+                                                .replace(/[^0-9/]/g, '')
                                                 .replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, (match, p1, p2, p3) => {
                                                     const day = p1.padStart(2, '0');
                                                     const month = p2.padStart(2, '0');
@@ -172,15 +167,10 @@ export default function AthleteForm() {
                                 </div>
                             </div>
 
-                            {error && (
-                                <p className="text-red-500 text-sm mt-4">{error}</p>
-                            )}
                             <Button type="submit" className="w-full mt-6" disabled={loading}>
                                 {loading ? 'Cargando...' : 'Registrarse'}
                             </Button>
-                            {submited && (
-                                <p className="text-green-600 text-sm mt-2">{submited}</p>
-                            )}
+
                         </Form>
                     )}
             </Formik>
