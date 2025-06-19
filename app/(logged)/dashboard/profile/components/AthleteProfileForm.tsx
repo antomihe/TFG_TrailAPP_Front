@@ -1,190 +1,120 @@
+// app\(logged)\dashboard\profile\components\AthleteProfileForm.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Button, Input, Label, Skeleton } from '@/components/ui/';
+import React from 'react';
 import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import api from '@/config/api';
-import { useUserState } from '@/store/user/user.store';
-import { toast } from 'sonner';
-
-const schema = Yup.object().shape({
-    email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
-    fullName: Yup.string().required('El nombre completo es obligatorio'),
-    idNumber: Yup.string()
-        .required('El documento de identificación es obligatorio')
-        .matches(/^[XYZ]?\d{5,8}[A-Z]$/, 'El documento de identificación debe ser un DNI o NIE válido')
-        .test('idNumber', 'DNI o NIE no válido', value => {
-            if (!value) return false;
-            const dniLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-            const number = parseInt((value?.slice(0, -1) ?? '').replace(/[XYZ]/, match => ({ X: '0', Y: '1', Z: '2' }[match])!), 10);
-            const letter = value.slice(-1);
-            return dniLetters[number % 23] === letter;
-        }),
-    dateOfBirth: Yup.string()
-        .required('La fecha de nacimiento es obligatoria')
-        .matches(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d\d$/, 'La fecha de nacimiento no es válida (dd/mm/yyyy)')
-        .test('dateOfBirth', 'La fecha de nacimiento debe ser después del 01/01/1900', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const date = new Date(year, month - 1, day);
-            return date >= new Date(1900, 0, 1);
-        })
-        .test('dateOfBirth', 'La fecha de nacimiento no puede ser en el futuro', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const date = new Date(year, month - 1, day);
-            return date <= new Date();
-        })
-        .test('dateOfBirth', 'La fecha de nacimiento no es válida', value => {
-            const [day, month, year] = value.split('/').map(Number);
-            const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-            const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            return day <= daysInMonth[month - 1];
-        })
-});
+import { AlertTriangle, Loader2, ServerCrash } from 'lucide-react';
+import { Button, Skeleton } from '@/components/ui';
+import { FormikField, FormikButton } from '@/components/ui';
+import {
+    useAthleteProfile,
+    AthleteProfileFormValues,
+} from '@/hooks/api/dashboard/profile/useAthleteProfile';
+import { formatDateInput } from '@/lib/utils';
+import { CenteredMessage } from '@/components/ui/centered-message';
 
 const SkeletonLoader = () => (
-    <div className="max-w-xl mx-auto p-4">
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
+    <div className="max-w-xl mx-auto p-4 space-y-4">
+        <Skeleton className="h-10 w-full" /> {/* fullName */}
+        <Skeleton className="h-10 w-full" /> {/* email */}
+        <div className="flex space-x-4">
+            <Skeleton className="h-10 w-1/2" /> {/* idNumber */}
+            <Skeleton className="h-10 w-1/2" /> {/* dateOfBirth */}
+        </div>
+        <Skeleton className="h-10 w-full mt-2" /> {/* Botón */}
     </div>
 );
 
-export default function AthelteProfileForm() {
-    const [loading, setLoading] = React.useState(false);
-    const [sending, setSending] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-    const { user: userState } = useUserState();
-    const [user, setUser] = React.useState<any | null>(null);
+export default function AthleteProfileForm() {
+    const {
+        initialFormValues,
+        loading,
+        error,
+        validationSchema,
+        handleUpdateUserProfile,
+        refetchProfile,
+        FIELD_NAMES,
+    } = useAthleteProfile();
 
-    const formatDate = (dateString: string) => {
-        const [year, month, day] = dateString.split('-');
-        return `${day}/${month}/${year}`;
-    };
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            setLoading(true);
-            try {
-                const res = await api(userState.access_token).get(`users/athlete/id/${userState.id}`);
-                const userData = res.data;
-                userData.dateOfBirth = formatDate(userData.dateOfBirth);
-                setUser(userData);
-            } catch (error) {
-                setError('Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, []);
-
-    if (loading) {
+    if (loading && !initialFormValues.email) {
         return <SkeletonLoader />;
     }
 
     if (error) {
         return (
-            <div className="max-w-xl mx-auto p-4">
-                <p className="text-red-500 text-sm">{error}</p>
-            </div>
+            <CenteredMessage
+                icon={<ServerCrash size={48} />}
+                title="Error al Cargar Datos del Perfil"
+                variant="destructive"
+                message={<>Ocurrió un problema al obtener los datos del perfil. <br /> ({error})</>}
+                action={
+                    <Button onClick={() => refetchProfile()} variant="destructive" disabled={loading}>
+                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <AlertTriangle className="mr-2 h-4 w-4" />}
+                        Reintentar
+                    </Button>
+                }
+            />
         );
     }
 
+
     return (
         <div className="max-w-xl mx-auto p-4">
-            <Formik
+            <Formik<AthleteProfileFormValues>
+                initialValues={initialFormValues}
+                validationSchema={validationSchema}
+                onSubmit={handleUpdateUserProfile}
                 enableReinitialize
-                initialValues={{
-                    email: user?.email as string || '',
-                    fullName: user?.displayName as string || '',
-                    idNumber: user?.idNumber as string || '',
-                    dateOfBirth: user?.dateOfBirth as string || ''
-                }}
-                validationSchema={schema}
-                onSubmit={async (values) => {
-
-                    setSending(true);
-                    try {
-                        console.log('accesToken', userState.access_token);
-                        const res = await api(userState.access_token).patch(`/users/athlete/${userState.id}`, values);
-                        setLoading(false);
-                        toast.success('¡Éxito! Tus datos han sido actualizados');
-                    } catch (error) {
-                        const errorMessage = (error as any)?.response?.data?.message;
-                        toast.error(errorMessage || 'Error al actualizar los datos');
-                    } finally {
-                        setSending(false);
-                    }
-                }}
             >
-                {(formik) => (
-                    <Form>
-                        <div className="space-y-2">
-                            <div className="space-y-1">
-                                <Label htmlFor="fullName">Nombre completo</Label>
-                                <Input
-                                    id="fullName"
-                                    placeholder="Cargando..."
-                                    value={formik.values.fullName}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.fullName && formik.errors.fullName && (
-                                    <p className="text-red-500 text-sm">{formik.errors.fullName}</p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    placeholder="Cargando..."
-                                    value={formik.values.email}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.email && formik.errors.email && (
-                                    <p className="text-red-500 text-sm">{formik.errors.email}</p>
-                                )}
-                            </div>
-                            <div className="flex space-x-4">
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="idNumber">DNI - NIE</Label>
-                                    <Input
-                                        id="idNumber"
-                                        placeholder="Cargando..."
-                                        value={formik.values.idNumber}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                    />
-                                    {formik.touched.idNumber && formik.errors.idNumber && (
-                                        <p className="text-red-500 text-sm">{formik.errors.idNumber}</p>
-                                    )}
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="dateOfBirth">Fecha de nacimiento</Label>
-                                    <Input
-                                        id="dateOfBirth"
-                                        placeholder="Cargando..."
-                                        value={formik.values.dateOfBirth}
-                                        onChange={formik.handleChange}
-                                        onBlur={formik.handleBlur}
-                                    />
-                                    {formik.touched.dateOfBirth && formik.errors.dateOfBirth && (
-                                        <p className="text-red-500 text-sm">{formik.errors.dateOfBirth}</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                <Form className="space-y-4">
+                    <h2 className="text-xl font-semibold text-center mb-6">Editar Perfil de Atleta</h2>
 
-                        <Button type="submit" className="w-full mt-6" disabled={sending}>
-                            {sending ? 'Cargando...' : 'Editar perfil'}
-                        </Button>
-                    </Form>
-                )}
+                    <FormikField
+                        name={FIELD_NAMES.fullName}
+                        label="Nombre completo"
+                        placeholder="Tu nombre completo"
+                        autoComplete="name"
+                    />
+
+                    <FormikField
+                        name={FIELD_NAMES.email}
+                        label="Email"
+                        type="email"
+                        placeholder="tu@email.com"
+                        autoComplete="email"
+                    />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormikField
+                            name={FIELD_NAMES.idNumber}
+                            label="DNI / NIE"
+                            placeholder="12345678Z o X1234567Z"
+                            onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                e.target.value = e.target.value.toUpperCase();
+                            }}
+                            autoComplete="off"
+                        />
+                        <FormikField
+                            name={FIELD_NAMES.dateOfBirth}
+                            label="Fecha de nacimiento (dd/mm/yyyy)"
+                            placeholder="dd/mm/yyyy"
+                            type="text"
+                            onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const formatted = formatDateInput(e.target.value);
+                                e.target.value = formatted;
+                            }}
+                            autoComplete="bday"
+                        />
+                    </div>
+
+                    <FormikButton
+                        type="submit"
+                        disabled={loading}
+                        className="w-full mt-6"
+                    >
+                        Guardar Cambios
+                    </FormikButton>
+                </Form>
             </Formik>
         </div>
     );

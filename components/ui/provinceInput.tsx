@@ -1,7 +1,8 @@
+// components\ui\provinceInput.tsx
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,97 +18,103 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import api from "@/config/api"
+import { Label } from "@/components/ui/label"
+import { useProvinces } from "@/hooks/components/useProvinces"
 
-type Props = {
-    setError: (error: string) => void;
-    province: string;
-    location: string;
+export interface ProvincesComponentProps {
+    label?: string;
+    id?: string;
+    name?: string;
+    locationName?: string;
+    provinceValue: string;
+    locationValue?: string;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
     setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
+    disabled?: boolean;
 }
 
-export function ProvincesComponent({ setError, province, location, setFieldValue, setFieldTouched }: Props) {
-    const [open, setOpen] = React.useState(false)
-    const [provinces, setProvinces] = React.useState<{ label: any; value: any; }[]>([]);
-
-    const getProvinces = async () => {
-        try {
-            const result = [];
-            const { data } = await api().get('ubi/provinces');
-
-            for (const province of data) {
-                result.push({
-                    label: province.name,
-                    value: province.name
-                });
-            }
-
-            return result;
-        } catch (error) {
-            setError('Error al cargar las provincias');
-        }
-    }
-
-    React.useEffect(() => {
-        const fetchProvinces = async () => {
-            const result = await getProvinces();
-            if (result) {
-                setProvinces(result);
-            }
-        };
-
-        fetchProvinces();
-    }, []);
+export function ProvincesComponent({
+    label,
+    id = "province",
+    name = "province",
+    locationName = "location",
+    provinceValue,
+    locationValue,
+    setFieldValue,
+    setFieldTouched,
+    disabled = false,
+}: ProvincesComponentProps) {
+    const [open, setOpen] = React.useState(false);
+    const { provinces, isLoading, error: fetchError } = useProvinces();
 
     return (
-        <Popover
-            open={open}
-            onOpenChange={setOpen}
-        >
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className={cn("w-full justify-between font-normal", !province && "text-accent-foreground")}
-                >
-                    {province ? province : "Seleccione provincia..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent
-                onBlur={() => setFieldTouched('province', true)}
-                className="w-[200px] p-0"
-            >
-                <Command>
-                    <CommandInput placeholder="Buscar provincia..." />
-                    <CommandList>
-                        <CommandEmpty>Sin coincidencias</CommandEmpty>
-                        <CommandGroup>
-                            {provinces.map((prov) => (
-                                <CommandItem
-                                    key={prov.value}
-                                    onSelect={(currentValue) => {
-                                        setOpen(false);
-                                        setFieldValue('province', currentValue);
-                                        location && setFieldValue('location', '');
-                                        location && setFieldTouched('location', false);
-                                    }}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            province === prov.value ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    {prov.label}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
-    )
+        <div className="space-y-1 w-full">
+            {label && <Label htmlFor={id}>{label}</Label>}
+            <Popover open={open} onOpenChange={(open) => {
+                setOpen(open);
+                if (!open) {
+                    setFieldTouched(name, true, true); 
+                }
+            }}>
+                <PopoverTrigger asChild>
+                    <Button
+                        id={id}
+                        variant="outline"
+                        role="combobox"
+                        name={name}
+                        aria-expanded={open}
+                        className={cn(
+                            "w-full justify-between font-normal",
+                            !provinceValue && "text-muted-foreground"
+                        )}
+                        disabled={disabled || isLoading || (provinces.length === 0 && !isLoading && !fetchError)}
+                    >
+                        {isLoading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        {provinceValue
+                            ? provinceValue
+                            : (provinces.length === 0 && !isLoading && !fetchError) ? "No hay provincias" : "Seleccione provincia..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                        <CommandInput placeholder="Buscar provincia..." />
+                        <CommandList>
+                            {fetchError && <CommandEmpty className="text-destructive py-2 px-4 text-sm">{fetchError} Inténtalo de nuevo.</CommandEmpty>}
+                            {!fetchError && isLoading && <CommandEmpty>Cargando...</CommandEmpty>}
+                            {!fetchError && !isLoading && provinces.length === 0 && <CommandEmpty>No hay provincias disponibles.</CommandEmpty>}
+                            <CommandGroup>
+                                {provinces.map((provOption) => (
+                                    <CommandItem
+                                        key={provOption.value}
+                                        value={provOption.label}
+                                        onSelect={() => {
+                                            setFieldValue(name, provOption.value, true);
+                                            try {
+                                                setFieldValue(locationName, '', false);
+                                                setFieldTouched(locationName, false, false);
+                                            } catch (e) {
+                                                console.warn('Campo location aún no disponible en Formik. Será limpiado más tarde si existe.');
+                                            }
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                provinceValue === provOption.value ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {provOption.label}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </CommandList>
+                    </Command>
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
 }

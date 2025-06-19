@@ -1,172 +1,146 @@
+// app\(logged)\dashboard\(federation)\events\manage\[eventId]\components\EditElement.tsx
+
+
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Button, Input, Label, Skeleton } from '@/components/ui/';
+import React from 'react';
 import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import api from '@/config/api';
-import { useUserState } from '@/store/user/user.store';
-import { useParams } from 'next/navigation';
-import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FormikField, FormikButton, Button } from '@/components/ui';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { DateInput } from '@/components/ui/dateInput';
+import { EditableEventFormValues, useEditEventForm } from '@/hooks/api/dashboard/federation/useEditEventForm';
 
-const schema = Yup.object().shape({
-    name: Yup.string().required('El nombre  es obligatorio'),
-    date: Yup.string().required('La fecha es obligatoria'),
-    //en la edición sí se permite una fecha en el pasado
-});
 
 const SkeletonLoader = () => (
-    <div className="max-w-xl mx-auto p-4">
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
+    <div className="max-w-xl mx-auto p-4 space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full mt-6" />
     </div>
 );
 
-export default function EditElementForm() {
-    const { user: userState } = useUserState();
-    const params = useParams();
-    const [loading, setLoading] = React.useState(false);
-    const [sending, setSending] = React.useState(false);
-    const [event, setEvent] = React.useState<any>(null);
-    const [province, setProvince] = React.useState<string>('Cargando...');
-    const [location, setLocation] = React.useState<string>('Cargando...');
-    const [distances, setDistances] = React.useState<string>('Cargando...');
-    const [organizer, setOrganizer] = React.useState<any>({ email: 'Cargando...', name: 'Cargando...', });
 
-    useEffect(() => {
-        const fetchEvent = async () => {
-            setLoading(true);
-            try {
-                const { eventId } = params;
-                const res = await api(userState.access_token).get(`events/${eventId}`);
-                setProvince(res.data.province);
-                setLocation(res.data.location);
-                setDistances(res.data.distances.join('km, ') + 'km');
-                setOrganizer(res.data.organizer);
-                setEvent(res.data);
-            } catch (error) {
-                toast.warning('Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
+const ReadOnlyField: React.FC<{ label: string; value: string | number | undefined; placeholder?: string }> = ({
+    label,
+    value,
+    placeholder = "N/A",
+}) => (
+    <div className="space-y-1">
+        <Label htmlFor={label.toLowerCase().replace(/\s/g, '-')}>{label}</Label>
+        <Input
+            id={label.toLowerCase().replace(/\s/g, '-')}
+            value={value === undefined || value === null || value === '' ? placeholder : String(value)}
+            disabled={true}
+            readOnly
+        />
+    </div>
+);
 
-        fetchEvent();
-    }, []);
+export default function EditEventForm() {
+    const {
+        eventData,
+        initialFormValues,
+        loadingData,
+        errorLoading,
+        validationSchema,
+        handleUpdateEvent,
+        refetchEventData,
+        FIELD_NAMES
+    } = useEditEventForm();
 
-    if (loading) {
+    if (loadingData) {
         return <SkeletonLoader />;
+    }
+
+    if (errorLoading) {
+        return (
+            <div className="max-w-xl mx-auto p-4">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                        {errorLoading}
+                        <Button onClick={refetchEventData} variant="outline" size="sm" className="mt-2">
+                            Reintentar carga
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
+
+    if (!eventData) {
+        return (
+            <div className="max-w-xl mx-auto p-4">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                        No se pudieron cargar los datos del evento.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
     }
 
     return (
         <div className="max-w-xl mx-auto p-4">
-            <Formik
+            <Formik<EditableEventFormValues>
+                initialValues={initialFormValues}
+                validationSchema={validationSchema}
+                onSubmit={handleUpdateEvent}
                 enableReinitialize
-                initialValues={{
-                    name: event?.name as string || '',
-                    date: event?.date as string || '',
-                }}
-                validationSchema={schema}
-                onSubmit={async (values) => {
-                    setSending(true);
-                    try {
-                        const { eventId } = params;
-                        await api(userState.access_token).patch(`/events/${eventId}`, values);
-                        setLoading(false);
-                        toast.info('¡Éxito! Los datos han sido actualizados');
-                    } catch (error) {
-                        const errorMessage = (error as any)?.response?.data?.message;
-                        toast.error(errorMessage || 'Error desconocido');
-                    } finally {
-                        setSending(false);
-                    }
-                }}
             >
-                {(formik) => (
-                    <Form>
-                        <div className="space-y-2">
-                            <div className="space-y-1">
-                                <Label htmlFor="name">Nombre</Label>
-                                <Input
-                                    id="name"
-                                    placeholder="Cargando..."
-                                    value={formik.values.name}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.errors.name && (
-                                    <p className="text-red-500 text-sm">{formik.errors.name}</p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="date">Fecha</Label>
-                                <DateInput
-                                    date={formik.values.date}
-                                    setFieldValue={formik.setFieldValue}
-                                    setFieldTouched={formik.setFieldTouched}
-                                />
-                                {formik.errors.date && (
-                                    <p className="text-red-500 text-sm">{formik.errors.date}</p>
-                                )}
-                            </div>
+                {({ values, setFieldTouched, setFieldValue }) => (
+                    <Form className="space-y-4">
+                        <h2 className="text-xl font-semibold mb-4">Editar Evento: {eventData.name}</h2>
 
-                            <div className="flex space-x-4">
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="province">Provincia</Label>
-                                    <Input
-                                        id='province'
-                                        placeholder='Provincia'
-                                        value={province}
-                                        disabled={true}
-                                    />
-                                </div>
+                        <FormikField
+                            name={FIELD_NAMES.name}
+                            label="Nombre del Evento"
+                            placeholder="Nombre del evento"
+                        />
 
-                                <div className="flex-1 space-y-1">
-                                    <Label htmlFor="location">Localidad</Label>
-                                    <Input
-                                        id="location"
-                                        placeholder="Localidad"
-                                        value={location}
-                                        disabled={true}
-                                    />
-                                </div>
-                            </div>
-                            <div className='space-x-1'>
-                                <Label htmlFor="distances">Distancias</Label>
-                                <Input
-                                    id="distances"
-                                    placeholder="Distancias"
-                                    value={distances}
-                                    disabled={true}
-                                />
-                            </div>
-                            <div className='space-x-1'>
-                                <Label htmlFor="organizerName">Organizador</Label>
-                                <Input
-                                    id="organizerName"
-                                    placeholder="Organizador"
-                                    value={organizer.name}
-                                    disabled={true}
-                                />
-                            </div>
-                            <div className='space-x-1'>
-                                <Label htmlFor="organizerEmail">Correo del organizador</Label>
-                                <Input
-                                    id="organizerEmail"
-                                    placeholder="Correo del organizador"
-                                    value={organizer.email}
-                                    disabled={true}
-                                />
-                            </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor={FIELD_NAMES.date}>Fecha del Evento</Label>
+                            <DateInput
+                                id={FIELD_NAMES.date}
+                                name={FIELD_NAMES.date}
+                                date={values.date}
+                                setFieldValue={setFieldValue}
+                                setFieldTouched={setFieldTouched}
+
+                            />
+                            <FormikField name={FIELD_NAMES.date} label="" className="hidden" />
                         </div>
 
-                        <Button type="submit" className="w-full mt-6" disabled={sending}>
-                            {sending ? 'Cargando...' : 'Editar perfil'}
-                        </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t mt-6">
+                            <ReadOnlyField label="Provincia" value={eventData.province} />
+                            <ReadOnlyField label="Localidad" value={eventData.location} />
+                        </div>
+                        <ReadOnlyField
+                            label="Distancias"
+                            value={eventData.distances?.join('km, ') + (eventData.distances?.length > 0 ? 'km' : '')}
+                            placeholder="No especificadas"
+                        />
+                        <ReadOnlyField label="Organizador" value={eventData.organizer?.name} />
+                        <ReadOnlyField label="Correo del Organizador" value={eventData.organizer?.email} />
+
+
+                        <FormikButton
+                            type="submit"
+                            className="w-full mt-6"
+                            disabled={loadingData}
+                        >
+                            Actualizar Evento
+                        </FormikButton>
                     </Form>
                 )}
             </Formik>

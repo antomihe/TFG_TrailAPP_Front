@@ -1,3 +1,4 @@
+// components\ui\pagination-component.tsx
 import {
     Pagination,
     PaginationContent,
@@ -20,7 +21,7 @@ function PaginationComponent({ currentPage, totalPages, handlePageChange, classN
     const handleNextPage = () => handlePageChange(Math.min(currentPage + 1, totalPages));
 
     const getPaginationItems = () => {
-        let items: (number | JSX.Element)[] = [];
+        const items: (number | JSX.Element)[] = [];
 
         if (totalPages <= 1) return [];
 

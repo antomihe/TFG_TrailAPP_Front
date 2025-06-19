@@ -1,224 +1,159 @@
+
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useUserState } from '@/store/user/user.store';
-import api from '@/config/api';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input";
-import { TrashIcon, ChevronDown, NotebookPen } from 'lucide-react';
-import { dateFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
-import { H4, Small } from '@/components/ui';
-import { Formik, Form } from 'formik';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { H3, H4, Small } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import EventCard from './EventCard';
+import { useFutureAthleteEnrollableEvents } from '@/hooks/api/dashboard/athlete/useFutureAthleteEnrollableEvents';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Frown } from 'lucide-react';
 
-interface Event {
-    id: string;
-    name: string;
-    date: string;
-    location: string;
-    province: string;
-    distances: number[];
-    enrolled: boolean;
-    enrolledDistance?: number;
+function getPageSizeBasedOnWindowWidth(): number {
+    if (typeof window === 'undefined') return 3; 
+    const width = window.innerWidth;
+    if (width >= 1280) return 3; 
+    if (width >= 768) return 2;  
+    return 1;                    
 }
 
-export default function EventsEnrollList() {
-    function getPageSize() {
-        if (window.innerWidth >= 1024) return 3; // Desktop
-        if (window.innerWidth >= 768) return 4 // Tablet
-        return 3; // Mobile
-    }
+export default function EventsEnrollPage() {
+    const [pageSize, setPageSize] = useState(getPageSizeBasedOnWindowWidth());
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const [pageSize, setPageSize] = useState(getPageSize());
+    const { 
+        events: allEvents, 
+        updateEvent, 
+        loading, 
+        error,
+        refetchEvents
+    } = useFutureAthleteEnrollableEvents();
 
     useEffect(() => {
-        const handleResize = () => setPageSize(getPageSize());
+        const handleResize = () => {
+            setPageSize(getPageSizeBasedOnWindowWidth());
+        };
+        handleResize(); 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const user = useUserState().user;
-    const [events, setEvents] = useState<Event[]>([]);
-    const [sending, setSending] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+    const filteredEvents = useMemo(() => {
+        if (!allEvents) return [];
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        return allEvents.filter(event =>
+            event.name.toLowerCase().includes(lowerSearchTerm) ||
+            event.location.toLowerCase().includes(lowerSearchTerm) ||
+            event.province.toLowerCase().includes(lowerSearchTerm)
+        );
+    }, [allEvents, searchTerm]);
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            setLoading(true);
-            try {
-                const res = await api(user.access_token).get(`events/enroll/athlete/future`);
-                setEvents(res.data);
-                setFilteredEvents(res.data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const paginatedEvents = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredEvents.slice(startIndex, startIndex + pageSize);
+    }, [filteredEvents, currentPage, pageSize]);
 
-        fetchEvents();
-    }, [user.id]);
-
-    const paginatedEvents = filteredEvents.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+    const totalPages = Math.ceil(filteredEvents.length / pageSize);
 
     const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage - 1);
+        setCurrentPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value.toLowerCase();
-        const newFilteredEvents = events.filter(e => e.name.toLowerCase().includes(value));
-        setFilteredEvents(newFilteredEvents);
-        setCurrentPage(0);
+        setSearchTerm(event.target.value);
+        setCurrentPage(1); 
     };
+    
+    const renderSkeletons = () => (
+        Array.from({ length: pageSize }).map((_, index) => (
+            <div key={`skeleton-${index}`} className="p-4 border rounded-lg shadow-sm bg-card flex flex-col">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-1" />
+                <Skeleton className="h-4 w-2/3 mb-1" />
+                <Skeleton className="h-4 w-1/2 mb-4" />
+                <div className="mt-auto space-y-3 pt-3 border-t border-border/40">
+                    <Skeleton className="h-10 w-full mb-2" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </div>
+        ))
+    );
 
-    if (loading) {
-        return <div className="text-center pt-5">Cargando...</div>;
+    if (error && !loading) { 
+        return (
+            <div className="container mx-auto py-10 px-4 text-center flex flex-col items-center">
+                <Frown className="w-16 h-16 text-destructive mb-4" />
+                <H3 className="mb-2 text-xl font-semibold text-destructive">Error al cargar eventos</H3>
+                <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
+                <Button onClick={refetchEvents}>Intentar de nuevo</Button>
+            </div>
+        );
     }
 
     return (
-        <div className="w-full items-center">
-            <div className="flex items-center justify-between py-4 space-x-4 mx-2">
+        <div className="container mx-auto py-8 px-4">
+            <div className="mb-8 text-center">
+              <H3 className="text-3xl font-bold tracking-tight">Próximos Eventos</H3>
+              <p className="text-muted-foreground">
+                Explora y únete a los próximos eventos deportivos.
+              </p>
+            </div>
+
+
+            <div className="mb-6">
                 <Input
-                    placeholder="Filtrar por nombre de evento..."
-                    className="md:max-w-sm w-full"
+                    aria-label="Filtrar eventos"
+                    placeholder="Buscar por nombre, localidad o provincia..."
+                    className="w-full md:max-w-lg mx-auto" 
+                    value={searchTerm}
                     onChange={handleFilterChange}
                 />
             </div>
 
-            {filteredEvents.length === 0 ? (
-                <div className="text-center pt-5">No hay eventos disponibles</div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {paginatedEvents.map((event) => (
-                        <div key={event.id} className="p-4 border rounded-lg shadow-sm bg-card">
-                            <H4 className="text-lg text-primary font-bold mb-2">{event.name}</H4>
-                            <p className="text-sm text-secondary">Fecha: {dateFormatter(event.date)}</p>
-                            <p className="text-sm text-secondary">Localidad: {event.location}</p>
-                            <p className="text-sm text-secondary">Provincia: {event.province}</p>
-
-                            <Formik
-                                initialValues={{ distance: event.enrolledDistance || '' }}
-                                onSubmit={async (values, { setFieldError }) => {
-                                    setSending(true);
-                                    try {
-                                        if (event.enrolled) {
-                                            const data = {
-                                                eventId: event.id,
-                                                userId: user.id
-                                            }
-
-                                            const res = await api(user.access_token).delete('events/enroll/athlete', { data })
-
-                                            values.distance = '';
-                                            event.enrolled = false;
-                                            event.enrolledDistance = undefined;
-                                        } else {
-                                            const data = {
-                                                eventId: event.id,
-                                                distance: values.distance,
-                                                userId: user.id
-                                            }
-                                            const res = await api(user.access_token).post('events/enroll/athlete', data)
-
-                                            event.enrolled = true;
-                                            event.enrolledDistance = +values.distance;
-                                        }
-
-                                    } catch (err) {
-                                        const errorMessage = (err as any)?.response?.data?.message || 'Ha ocurrido un error';
-                                        setFieldError('distance', errorMessage );
-                                    } finally {
-                                        setSending(false);
-                                    }
-                                }}
-                            >
-                                {({ setFieldValue, values, errors }) => {
-                                    const [open, setOpen] = useState(false);
-
-                                    return (
-                                        <Form className="mt-4 space-y-2">
-                                            <Popover open={open} onOpenChange={setOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className="w-full justify-between"
-                                                        aria-expanded={open}
-                                                        disabled={event.enrolled}
-                                                    >
-                                                        {values.distance ? `${values.distance} km` : "Selecciona una distancia"}
-                                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-40 p-0">
-                                                    <Command>
-                                                        <CommandInput placeholder="Buscar distancia..." />
-                                                        <CommandList>
-                                                            <CommandEmpty>Sin coincidencias</CommandEmpty>
-                                                            <CommandGroup>
-                                                                {event.distances.map((distance, index) => (
-                                                                    <CommandItem
-                                                                        key={index}
-                                                                        onSelect={() => {
-                                                                            setFieldValue("distance", distance);
-                                                                            setOpen(false);
-                                                                        }}
-                                                                    >
-                                                                        {distance} km
-                                                                    </CommandItem>
-                                                                ))}
-                                                            </CommandGroup>
-                                                        </CommandList>
-                                                    </Command>
-                                                </PopoverContent>
-                                            </Popover>
-
-                                            <Button
-                                                type="submit"
-                                                variant={event.enrolled ? "destructive" : "default"}
-                                                className="w-full"
-                                                disabled={sending || (!event.enrolled && !values.distance)}
-                                            >
-                                                {event.enrolled ? (
-                                                    <>
-                                                        <TrashIcon className="mr-2 h-4 w-4" /> Eliminar
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <NotebookPen className="mr-2 h-4 w-4" /> Inscribirse
-                                                    </>
-                                                )}
-                                            </Button>
-
-                                            {errors.distance && (
-                                                <Small className="text-red-500 text-center">{errors.distance}</Small>
-                                            )}
-                                        </Form>
-                                    )
-                                }}
-                            </Formik>
-                        </div>
-                    ))}
-
+            {loading && paginatedEvents.length === 0 ? ( 
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {renderSkeletons()}
+                 </div>
+            ) : !loading && filteredEvents.length === 0 ? (
+                <div className="text-center py-12 bg-muted/30 rounded-lg">
+                    <Frown className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <H4 className="text-xl font-medium">No hay eventos disponibles</H4>
+                    <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+                        {searchTerm 
+                            ? "No se encontraron eventos que coincidan con tu búsqueda. Intenta con otros términos." 
+                            : "Parece que no hay eventos programados por el momento. ¡Vuelve más tarde!"}
+                    </p>
                 </div>
-            )}
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {paginatedEvents.map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                updateEvent={updateEvent}
+                            />
+                        ))}
+                    </div>
 
-            {filteredEvents.length > 0 && (
-                <Small className="text-center mt-4 font-medium">
-                    Mostrando {filteredEvents.length} eventos en total
-                </Small>
-            )}
-            {filteredEvents.length > 0 && (
-                <PaginationComponent
-                    className="mt-4"
-                    currentPage={currentPage + 1}
-                    totalPages={Math.ceil(filteredEvents.length / pageSize)}
-                    handlePageChange={handlePageChange}
-                />
+                    {totalPages > 1 && (
+                        <PaginationComponent
+                            className="mt-10 flex justify-center"
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            handlePageChange={handlePageChange}
+                        />
+                    )}
+                    {filteredEvents.length > 0 && (
+                        <Small className="text-center block mt-6 text-muted-foreground">
+                            Mostrando {paginatedEvents.length} de {filteredEvents.length} eventos.
+                        </Small>
+                    )}
+                </>
             )}
         </div>
     );

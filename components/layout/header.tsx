@@ -1,16 +1,17 @@
+// components\layout\header.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
-import { useUserState } from "@/store/user/user.store";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { NavigationMenu, NavigationMenuList, NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { ThemeIconButton, LogoIcon } from "@/components/theme/";
 import { Button } from "@/components/ui";
+import { useAuth } from '@/hooks/auth/useAuth';
 
 export const Header = () => {
     const [isClient, setIsClient] = useState(false);
-    const isUserLogged = useUserState((state) => !state.isNull());
+    const { isAuthenticated, logout } = useAuth();
 
     useEffect(() => {
         setIsClient(true);
@@ -48,8 +49,8 @@ export const Header = () => {
 
             <div className="ml-auto flex gap-2">
                 {isClient && <ThemeIconButton />}
-                {isClient && isUserLogged ? (
-                    <UserMenu />
+                {isClient && isAuthenticated ? (
+                    <UserMenu logout={logout}/>
                 ) : (
                     <GuestMenu />
                 )}
@@ -68,13 +69,13 @@ const NavItem = ({ href, label }: { href: string, label: string }) => (
     </Link>
 );
 
-const UserMenu = () => (
+const UserMenu = ({ logout }: { logout: () => Promise<void> }) => (
     <>
         <Button
             variant="outline"
             className="distance-opacity hover:bg-accent border-0"
             onClick={() => {
-                useUserState.getState().logout();
+                logout();
             }}
         >
             Cerrar sesión

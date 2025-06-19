@@ -1,22 +1,19 @@
+// app\(logged)\dashboard\(nationalFederation)\layout.tsx
 'use client';
 
 import React, { ReactNode } from 'react';
-import { RoleRedirect } from '@/components/auth/RoleRedirect';
-import RoleEnum from '@/enums/Roles.enum';
+import RoleGuard from '@/components/auth/RoleGuard';
+import { RolesEnum } from '@/lib/auth-types';
 
 const NationalFederationLayout = ({ children }: { children: ReactNode }) => {
-    const RoleWrapper = RoleRedirect(
-        ({ children }: { children: ReactNode }) => <>{children}</>,
-        RoleEnum.NATIONALFEDERATION,
-        { component: ({ children }: { children: ReactNode }) => <>{children}</>, role: RoleEnum.NATIONALFEDERATION }
-    );
-
-    return (
-        <RoleWrapper>
-            {children}
-        </RoleWrapper>
-    );
+  return (
+    <RoleGuard
+      allowedRoles={[RolesEnum.NATIONALFEDERATION]}
+      redirectPath="/dashboard"
+    >
+      {children}
+    </RoleGuard>
+  );
 };
 
 export default NationalFederationLayout;
-

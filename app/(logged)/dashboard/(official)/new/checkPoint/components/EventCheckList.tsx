@@ -1,310 +1,285 @@
+// app\(logged)\dashboard\(official)\new\checkPoint\components\EventCheckList.tsx
+
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUserState } from '@/store/user/user.store';
-import api from '@/config/api';
-import { Button } from '@/components/ui/button';
-import { Input } from "@/components/ui/input";
+import React, { useState, useMemo } from 'react';
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
-    ColumnDef,
-    ColumnFiltersState,
-    SortingState,
-    VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ArrowUpDown, Wrench, AlertTriangle } from 'lucide-react';
-import { dateFormatter } from '@/lib/utils';
 import { PaginationComponent } from '@/components/ui/pagination-component';
-import { Small } from '@/components/ui';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Small } from '@/components/ui/typography'; 
+import { AlertTriangle, ListX, ServerCrash, CalendarSearch } from 'lucide-react';
 
-interface Event {
-    id: string;
-    name: string;
-    date: string;
-    location: string;
-    province: string;
-    validated: boolean;
-    distances: number[];
-}
+import { useFetchCheckPointEventsData, CheckPointEvent } from '@/hooks/api/dashboard/official/useFetchCheckPointEventsData';
+import { CheckPointEventsTableControls } from './CheckPointEventsTableControls';
+import { getCheckPointEventsTableColumns } from './CheckPointEventsTableColumns';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 5; 
+
+
+const CenteredMessage: React.FC<{
+  icon?: React.ReactNode;
+  title: string;
+  message: string | React.ReactNode;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive" | "warning";
+}> = ({ icon, title, message, action, variant = "default" }) => {
+  let alertClasses = "dark:bg-neutral-800/30";
+  let iconClasses = "text-primary";
+  if (variant === "destructive") {
+    alertClasses = "border-destructive/50 text-destructive dark:border-destructive/30";
+    iconClasses = "text-destructive";
+  } else if (variant === "warning") {
+    alertClasses = "border-yellow-500/50 text-yellow-700 dark:text-yellow-500 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/10";
+    iconClasses = "text-yellow-600 dark:text-yellow-400";
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center min-h-[300px]">
+      <Alert className={`max-w-md w-full ${alertClasses}`}>
+        {icon && <div className={`mb-3 flex justify-center ${iconClasses}`}>{icon}</div>}
+        <AlertTitle className={`text-lg font-semibold ${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : ''}`}>{title}</AlertTitle>
+        <AlertDescription className={`${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-600 dark:text-yellow-500' : ''}`}>
+          {message}
+        </AlertDescription>
+        {action && <div className="mt-4">{action}</div>}
+      </Alert>
+    </div>
+  );
+};
+
+
+
+const TableSkeleton = ({ columnCount = 5, rowCount = PAGE_SIZE }: { columnCount?: number, rowCount?: number }) => (
+  <div className="w-full space-y-3">
+
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-4 px-1 md:px-2">
+      <Skeleton className="h-10 w-full sm:w-1/3" />
+      <Skeleton className="h-10 w-full sm:w-auto sm:px-10" />
+    </div>
+
+    <div className="rounded-md border dark:border-neutral-800">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {Array.from({ length: columnCount }).map((_, i) => (
+              <TableHead key={i}><Skeleton className="h-5 w-full" /></TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: rowCount }).map((_, i) => (
+            <TableRow key={i}>
+              {Array.from({ length: columnCount }).map((_, j) => (
+                <TableCell key={j}><Skeleton className="h-5 w-full" /></TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+
+    <div className="flex items-center justify-between py-4">
+      <Skeleton className="h-8 w-1/4" />
+      <div className="flex space-x-2">
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-8 w-16" />
+      </div>
+    </div>
+  </div>
+);
+
 
 export default function EventCheckList() {
-    const router = useRouter();
-    const user = useUserState().user;
-    const [events, setEvents] = useState<Event[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [errorLoading, setErrorLoading] = useState<string | null>(null);
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [currentPage, setCurrentPage] = useState(0);
+  const {
+    events,
+    loading,
+    error: fetchError,
+    refetchEvents: refetchData, 
+  } = useFetchCheckPointEventsData();
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            setLoading(true);
-            try {
-                const res = await api(user.access_token).get(`events/jury/eventsByReferee/${user.id}`);
-                setEvents(res.data);
-            } catch (error) {
-                const errorMessage = (error as any)?.response?.data?.message;
-                setErrorLoading(errorMessage || 'Error desconocido');
-            } finally {
-                setLoading(false);
-            }
-        };
+  const [filterValue, setFilterValue] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]); 
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    
+    
+  });
+  const [currentPage, setCurrentPage] = useState(0);
 
-        fetchEvents();
-    }, [user.id]);
+  const columns: ColumnDef<CheckPointEvent>[] = useMemo(() => getCheckPointEventsTableColumns(), []);
 
-    const columns: ColumnDef<Event>[] = [
-        {
-            accessorKey: "name",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Nombre
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('name')}</div>,
-            enableHiding: false,
-        },
-        {
-            accessorKey: "date",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Fecha
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{dateFormatter(row.getValue('date'))}</div>,
-        },
-        {
-            accessorKey: "location",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Localidad
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('location')}</div>,
-        },
-        {
-            accessorKey: "province",
-            header: () => (
-                <div className="w-full text-center flex justify-center items-center">
-                    Provincia
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-            ),
-            cell: ({ row }) => <div className="text-center">{row.getValue('province')}</div>,
-        },
-        {
-            accessorKey: "distances",
-            header: () => (
-                <div className="w-full text-center">Distancias</div>
-            ),
-            enableSorting: false,
-            cell: ({ row }) => (
-                <div className="text-center">
-                    {(row.getValue('distances') as number[]).map((element: number) => `${element}km`).join(', ')}
-                </div>
-            ),
-        },
-        {
-            id: "actions",
-            enableHiding: false,
-            enableSorting: false,
-            cell: ({ row }) => {
-                const event = row.original;
-                return (
-                    <div className="flex space-x-2 justify-end">
-                        <Button
-                            onClick={() => router.push(`/dashboard/new/checkPoint/${event.id}`)}
-                            variant="outline"
-                            className="flex items-center bg-transparent border-primary"
-                            onMouseEnter={() => router.prefetch(`/dashboard/new/checkPoint/${event.id}`)}
-                        >
-                            <Wrench className="mr-2 h-4 w-4" /> Puntos de control
-                        </Button>
-                    </div>
-                );
-            },
-        },
-    ];
+  const table = useReactTable({
+    data: events,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    globalFilterFn: (row, columnId, filterValueL) => {
+      
+      const eventName = String(row.getValue('name')).toLowerCase();
+      const searchValue = String(filterValueL).toLowerCase();
+      return eventName.includes(searchValue);
+    },
+    onGlobalFilterChange: setFilterValue, 
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter: filterValue,
+      columnVisibility,
+      pagination: {
+        pageSize: PAGE_SIZE,
+        pageIndex: currentPage,
+      },
+    },
+  });
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage - 1); 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  };
 
-    const table = useReactTable({
-        data: events,
-        columns,
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnFiltersChange: setColumnFilters,
-        onColumnVisibilityChange: setColumnVisibility,
-        state: {
-            sorting,
-            columnFilters,
-            columnVisibility,
-            pagination: {
-                pageSize: PAGE_SIZE,
-                pageIndex: currentPage,
-            },
-        },
-    });
+  if (loading) {
+    return <div className="container mx-auto px-2 sm:px-4 py-8"><TableSkeleton columnCount={columns.length} /></div>;
+  }
 
-    const paginatedEvents = table.getRowModel().rows;
-
-    const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage - 1);
-
-    };
-
-    if (loading) {
-        return <div className="text-center pt-5">Cargando...</div>;
-    }
-
-    if (errorLoading) {
-        return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert className="flex items-center space-x-2 p-5">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription>
-                        {errorLoading}
-                    </AlertDescription>
-                </Alert>
-            </div>
-        );
-    }
-
-    if (events.length === 0) {
-        return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert className="flex items-center space-x-2 p-5">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <AlertDescription>
-                        No hay eventos futuros como Juez Árbitro asociados a tu usuario
-                    </AlertDescription>
-                </Alert>
-            </div>
-        )
-    }
-
+  if (fetchError) {
     return (
-        <div className="w-full items-center">
-            <div className="flex items-center justify-between py-4 space-x-4 mx-2">
-                <Input
-                    placeholder="Filtrar por nombre de evento..."
-                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-                    className="max-w-sm"
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columnas <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        {table.getAllColumns().map((column) => (
-                            column.getCanHide() && (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value) => column.toggleVisibility(value)}
-                                >
-                                    {(() => {
-                                        switch (column.id) {
-                                            case "date":
-                                                return "Fecha";
-                                            case "location":
-                                                return "Localidad";
-                                            case "province":
-                                                return "Provincia";
-                                            case "distances":
-                                                return "Distancias";
-                                            default:
-                                                return column.id;
-                                        }
-                                    })()}
-                                </DropdownMenuCheckboxItem>
-                            )
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-
-            <Table>
-                <TableHeader>
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <TableHead key={header.id} className='w-1/6'>
-                                    {header.isPlaceholder || header.id === 'actions' ? null : (
-                                        <Button
-                                            variant="ghost"
-                                            onClick={header.column.getToggleSortingHandler()}
-                                            className={"w-full"}
-                                        >
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
-                                        </Button>
-                                    )}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {paginatedEvents.length > 0 ? (
-                        paginatedEvents.map(row => (
-                            <TableRow key={row.id}>
-                                {row.getVisibleCells().map(cell => (
-                                    <TableCell key={cell.id}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={columns.length} className='text-center'>No se encontraron eventos</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-
-            {table.getRowCount() > 0 && (
-                <Small className='text-center mt-4 font-medium'>Mostrando {table.getRowCount()} elementos</Small>
-            )}
-            <PaginationComponent
-                totalPages={table.getPageCount()}
-                currentPage={currentPage + 1}
-                handlePageChange={handlePageChange}
-                className='mt-2'
-            />
-        </div>
+      <div className="container mx-auto px-2 sm:px-4 py-8">
+        <CenteredMessage
+          icon={<ServerCrash size={48} />}
+          title="Error al Cargar Eventos"
+          variant="destructive"
+          message={<>Ocurrió un problema al obtener los datos de los eventos. <br/> ({fetchError})</>}
+          action={refetchData && (
+            <Button onClick={refetchData} variant="destructive">
+              <AlertTriangle className="mr-2 h-4 w-4" /> Reintentar
+            </Button>
+          )}
+        />
+      </div>
     );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="container mx-auto px-2 sm:px-4 py-8">
+         <CheckPointEventsTableControls 
+            table={table}
+            filterValue={filterValue}
+            onFilterChange={setFilterValue}
+        />
+        <CenteredMessage
+          icon={<CalendarSearch size={48} />}
+          title="No Hay Eventos"
+          variant="warning"
+          message="No hay eventos futuros como Juez Árbitro asociados a tu usuario o que coincidan con los filtros aplicados."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-1 sm:px-2 py-6">
+      <CheckPointEventsTableControls
+        table={table}
+        filterValue={filterValue}
+        onFilterChange={setFilterValue}
+      />
+      <div className="rounded-md border dark:border-neutral-800 overflow-hidden">
+        <div className="overflow-x-auto"> 
+          <Table className="min-w-full">
+            <TableHeader>
+              {table.getHeaderGroups().map(headerGroup => (
+                <TableRow key={headerGroup.id} className="bg-muted/30 dark:bg-muted/10">
+                  {headerGroup.headers.map(header => (
+                    <TableHead
+                      key={header.id}
+                      className={`py-3 px-2 md:px-3 whitespace-nowrap ${(header.column.columnDef.meta as any)?.headerClassName}`}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map(row => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50 dark:hover:bg-muted/20 transition-colors"
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <TableCell
+                        key={cell.id}
+                        className={`py-3 px-2 md:px-3 text-sm ${(cell.column.columnDef.meta as any)?.cellClassName}`}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                      <ListX size={32} />
+                      <span>No se encontraron eventos con los filtros aplicados.</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between pt-4 pb-2 px-1 md:px-2 space-y-3 sm:space-y-0">
+        {table.getRowCount() > 0 ? (
+          <Small className="text-muted-foreground">
+            Mostrando {table.getState().pagination.pageIndex * PAGE_SIZE + 1}-
+            {Math.min((table.getState().pagination.pageIndex + 1) * PAGE_SIZE, table.getRowCount())} de {table.getRowCount()} eventos.
+          </Small>
+        ) : <div />}
+        {table.getPageCount() > 1 && (
+          <PaginationComponent
+            totalPages={table.getPageCount()}
+            currentPage={currentPage + 1}
+            handlePageChange={handlePageChange} 
+          />
+        )}
+      </div>
+    </div>
+  );
 }

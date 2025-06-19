@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\page.tsx
 import { Head } from "@/components/layout";
 import JuryForm from "./components/juryForm";
 
