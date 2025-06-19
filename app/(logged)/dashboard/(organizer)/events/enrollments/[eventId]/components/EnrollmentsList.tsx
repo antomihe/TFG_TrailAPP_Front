@@ -1,169 +1,206 @@
-'use client'
+// app\(logged)\dashboard\(organizer)\events\enrollments\[eventId]\components\EnrollmentsList.tsx
 
-import React, { useEffect, useState } from 'react';
-import { useUserState } from '@/store/user/user.store';
-import { Input, Large, Skeleton } from '@/components/ui';
-import api from '@/config/api';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckIcon, TrashIcon } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useParams } from 'next/navigation';
 
-interface Enrollment {
-    dorsal: number;
-    name: string;
-    birthdate: string;
-    dni: string;
-    distance: number;
-}
+'use client';
 
-const SkeletonLoader = () => (
-    <div className="p-4">
-        <Skeleton height="h-20" width="w-full" className="my-4" />
+import React, { useState, useMemo, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button as UiButton } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { H2, H3 } from '@/components/ui/typography'; 
+import { AlertTriangle, ServerCrash, Users, Loader2 } from 'lucide-react'; 
+import {
+    useFetchEventEnrollments,
+    Enrollment,
+} from '@/hooks/api/dashboard/organizer/useFetchEventEnrollments';
+import { EnrollmentListControls } from './EnrollmentListControls';
+import { EnrollmentTable } from './EnrollmentTable';
+
+
+const CenteredMessage: React.FC<{
+  icon?: React.ReactNode;
+  title: string;
+  message: string | React.ReactNode;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive" | "warning";
+}> = ({ icon, title, message, action, variant = "default" }) => {
+  let alertClasses = "dark:bg-neutral-800/30";
+  let iconClasses = "text-primary";
+  if (variant === "destructive") {
+    alertClasses = "border-destructive/50 text-destructive dark:border-destructive/30";
+    iconClasses = "text-destructive";
+  } else if (variant === "warning") {
+    alertClasses = "border-yellow-500/50 text-yellow-700 dark:text-yellow-500 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/10";
+    iconClasses = "text-yellow-600 dark:text-yellow-400";
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center min-h-[400px]">
+      <Alert className={`max-w-lg w-full ${alertClasses}`}>
+        {icon && <div className={`mb-4 flex justify-center ${iconClasses}`}>{icon}</div>}
+        <AlertTitle className={`text-xl font-semibold ${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : ''}`}>{title}</AlertTitle>
+        <AlertDescription className={`${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-600 dark:text-yellow-500' : ''} mt-2`}>
+          {message}
+        </AlertDescription>
+        {action && <div className="mt-6">{action}</div>}
+      </Alert>
+    </div>
+  );
+};
+
+const ListSkeletonLoader = () => (
+    <div className="max-w-6xl mx-auto px-2 sm:px-0 py-6 space-y-6">
+        {/* Controls Skeleton */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 rounded-lg border dark:border-neutral-800 bg-card dark:bg-neutral-900/50 shadow">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <Skeleton className="h-10 w-full sm:w-[280px]" />
+                <Skeleton className="h-10 w-full sm:w-[200px]" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <Skeleton className="h-10 w-full sm:w-40" />
+                <Skeleton className="h-10 w-full sm:w-40" />
+            </div>
+        </div>
+        {/* Table Skeleton */}
+        <div className="border rounded-lg dark:border-neutral-800 overflow-hidden">
+            {/* Header */}
+            <div className="p-3 border-b dark:border-neutral-800">
+                <Skeleton className="h-6 w-1/3"/>
+            </div>
+            {/* Rows */}
+            <div className="space-y-px bg-muted/30 dark:bg-neutral-800/50">
+                {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-background dark:bg-neutral-900">
+                        <Skeleton className="h-5 w-1/5" />
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-5 w-1/6" />
+                        <Skeleton className="h-5 w-1/6" />
+                        <Skeleton className="h-5 w-1/12" />
+                    </div>
+                ))}
+            </div>
+        </div>
     </div>
 );
 
 export default function EnrollmentList() {
-    const user = useUserState().user;
-    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-    const [filteredEnrollments, setFilteredEnrollments] = useState<Enrollment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const { eventId } = useParams();
+    const { 
+        enrollments: allEnrollments,
+        isLoading,
+        error,
+        isDownloading,
+        downloadBibsPDF,
+        downloadEnrollmentsPDF,
+        refetchEnrollments,
+    } = useFetchEventEnrollments();
 
-    useEffect(() => {
-        const fetchEnrollment = async () => {
-            setLoading(true);
-            try {
-                const res = await api(user.access_token).get(`events/enroll/event/${eventId}/list`);
-                setEnrollments(res.data);
-                setFilteredEnrollments(res.data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const [filterNameOrBib, setFilterNameOrBib] = useState('');
+    const [filterDistance, setFilterDistance] = useState('');
 
-        fetchEnrollment();
-    }, [user.id, eventId]);
-
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.toLowerCase();
-        if (value === '') {
-            setFilteredEnrollments(enrollments);
-        } else {
-            setFilteredEnrollments(
-                enrollments.filter(
-                    (enrollment) =>
-                        enrollment.name.toLowerCase().includes(value) ||
-                        enrollment.dorsal.toString().includes(value)
-                )
-            );
-        }
+    const handleFilterNameOrBibChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFilterNameOrBib(e.target.value);
     };
 
+    const handleFilterDistanceChange = (value: string) => {
+        setFilterDistance(value === "all" ? "" : value);
+    };
+
+    const filteredEnrollments = useMemo(() => {
+        const lowercasedNameOrBibFilter = filterNameOrBib.toLowerCase();
+        const distanceNumberFilter = filterDistance ? Number(filterDistance) : null;
+
+        if (!lowercasedNameOrBibFilter && distanceNumberFilter === null) {
+            return allEnrollments;
+        }
+
+        return allEnrollments.filter((enrollment) => {
+            const nameMatch = lowercasedNameOrBibFilter
+                ? enrollment.name.toLowerCase().includes(lowercasedNameOrBibFilter) ||
+                  enrollment.dorsal.toString().includes(lowercasedNameOrBibFilter)
+                : true;
+
+            const distanceMatch = distanceNumberFilter !== null
+                ? Number(enrollment.distance) === distanceNumberFilter 
+                : true;
+
+            return nameMatch && distanceMatch;
+        });
+    }, [allEnrollments, filterNameOrBib, filterDistance]);
+
+    const uniqueDistances = useMemo(() => {
+        if (!allEnrollments) return [];
+        const distancesSet = new Set(allEnrollments.map(e => e.distance));
+        return Array.from(distancesSet).sort((a, b) => a - b);
+    }, [allEnrollments]);
 
 
-    if (loading) {
-        return <SkeletonLoader />;
+    if (isLoading && allEnrollments.length === 0) { 
+        return <ListSkeletonLoader />;
     }
 
-    if (enrollments.length === 0) {
-        return <Large className="text-center pt-5">No hay inscripciones para este evento</Large>;
+    if (error && !isLoading && allEnrollments.length === 0) { 
+        return (
+            <div className="container mx-auto px-4 py-8">
+              <CenteredMessage
+                icon={<ServerCrash size={48} />}
+                title="Error al Cargar Inscripciones"
+                variant="destructive"
+                message={<>{error} <br/> No se pudo obtener la lista de inscripciones.</>}
+                action={
+                  <UiButton onClick={refetchEnrollments} variant="destructive">
+                    <AlertTriangle className="mr-2 h-4 w-4" /> Reintentar
+                  </UiButton>
+                }
+              />
+            </div>
+        );
     }
+    
+    const pageTitle = "Lista de Inscripciones";
+    const totalEnrollments = allEnrollments.length;
+    const showingEnrollments = filteredEnrollments.length;
 
     return (
-        <div className="max-w-4xl px-4 mx-auto">
-            <div className="flex justify-between items-center mb-4">
-                <div className="w-2/5">
-                    <Input
-                        type="text"
-                        placeholder="Filtrar por nombre o dorsal"
-                        className="p-2 bg-input border rounded w-full"
-                        onChange={handleFilterChange}
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <Button className="w-40"
-                        onClick={async () => {
-                            try {
-                                const response = await api(user.access_token).get(`events/enroll/event/${eventId}/bibs`, {
-                                    responseType: 'blob',
-                                });
-
-                                const blob = new Blob([response.data], { type: 'application/pdf' });
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = `dorsales_evento_${eventId}.pdf`;
-                                document.body.appendChild(link);
-                                link.click();
-
-                                link.parentNode?.removeChild(link);
-                                URL.revokeObjectURL(url);
-                            } catch (error) {
-                                console.error('Error al descargar el PDF', error);
-                            }
-                        }}
-                    >
-                        Descargar Dorsales
-                    </Button>
-                    <Button className="w-40"
-                        onClick={async () => {
-                            try {
-                                const response = await api(user.access_token).get(`events/enroll/event/${eventId}/print`, {
-                                    responseType: 'blob',
-                                });
-
-                                const blob = new Blob([response.data], { type: 'application/pdf' });
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = `inscripciones_evento_${eventId}.pdf`;
-                                document.body.appendChild(link);
-                                link.click();
-
-                                link.parentNode?.removeChild(link);
-                                URL.revokeObjectURL(url);
-                            } catch (error) {
-                                console.error('Error al descargar el PDF', error);
-                            }
-                        }}
-                    >
-                        Descargar PDF
-                    </Button>
-                </div>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-6 space-y-6">
+            <div className="text-center md:text-left">
+                <H2 className="text-2xl md:text-3xl font-bold text-primary dark:text-primary-foreground">{pageTitle}</H2>
+                <p className="text-muted-foreground">
+                    Total: {totalEnrollments} inscritos. Mostrando: {showingEnrollments}.
+                    {isLoading && totalEnrollments > 0 && <span className="ml-2 inline-flex items-center text-sm"><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Actualizando...</span>}
+                </p>
             </div>
+            {error && isLoading && allEnrollments.length > 0 && ( 
+                 <Alert variant="destructive" className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Error de Actualización</AlertTitle>
+                    <AlertDescription>
+                        No se pudieron cargar los datos más recientes ({error}). Mostrando información previa.
+                        <UiButton onClick={refetchEnrollments} variant="link" className="p-0 h-auto text-destructive-foreground underline ml-2">Reintentar</UiButton>
+                    </AlertDescription>
+                </Alert>
+            )}
 
+            <EnrollmentListControls
+                onFilterNameOrBibChange={handleFilterNameOrBibChange}
+                filterNameOrBibValue={filterNameOrBib}
+                onFilterDistanceChange={handleFilterDistanceChange}
+                selectedDistanceFilter={filterDistance}
+                availableDistances={uniqueDistances}
+                onDownloadBibs={() => downloadBibsPDF?.() ?? Promise.resolve()}
+                onDownloadEnrollments={() => downloadEnrollmentsPDF?.() ?? Promise.resolve()}
+                isDownloading={isDownloading}
+            />
 
-
-            <div className="mx-auto overflow-x-auto">
-                <ScrollArea className="h-[500px] overflow-y-auto">
-                    <Table className="min-w-full">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Dorsal</TableHead>
-                                <TableHead>Nombre</TableHead>
-                                <TableHead>DNI</TableHead>
-                                <TableHead>Fecha nacimiento</TableHead>
-                                <TableHead>Distancia</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredEnrollments.map((athlete) => (
-                                <TableRow key={athlete.dorsal}>
-                                    <TableCell>{athlete.dorsal}</TableCell>
-                                    <TableCell>{athlete.name}</TableCell>
-                                    <TableCell>{athlete.dni}</TableCell>
-                                    <TableCell>{athlete.birthdate}</TableCell>
-                                    <TableCell>{athlete.distance} KM</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </ScrollArea>
-            </div>
+            {(totalEnrollments === 0 && !isLoading && !error) ? (
+                 <CenteredMessage
+                    icon={<Users size={48} />}
+                    title="No Hay Inscripciones"
+                    variant="default"
+                    message="Aún no hay participantes inscritos en este evento."
+                 />
+            ) : (
+                <EnrollmentTable enrollments={filteredEnrollments} />
+            )}
         </div>
     );
 }

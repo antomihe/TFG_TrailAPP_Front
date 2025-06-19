@@ -1,14 +1,17 @@
+// app\(unlogged)\(auth)\layout.tsx
 'use client';
 
 import React, { ReactNode } from 'react';
-import { PublicRedirect } from '@/components/auth/PublicRedirect';
+import { PublicRedirect } from '@/components/auth/PublicRedirect'; 
 
-const PublicLayout = ({ children }: { children: ReactNode }) => {
-    const PublicWrapper = PublicRedirect(({ children }: { children: ReactNode }) => {
-        return <>{children}</>;
-    });
-
-    return <PublicWrapper>{children}</PublicWrapper>;
+const ChildrenRenderer = ({ children }: { children: ReactNode }) => {
+    return <>{children}</>;
 };
 
-export default PublicLayout;
+const PublicLayoutWrapper = PublicRedirect(ChildrenRenderer);
+
+const UnloggedAuthLayout = ({ children }: { children: ReactNode }) => {
+    return <PublicLayoutWrapper>{children}</PublicLayoutWrapper>;
+};
+
+export default UnloggedAuthLayout;

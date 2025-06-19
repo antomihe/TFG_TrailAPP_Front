@@ -1,144 +1,142 @@
+// app\(logged)\dashboard\(official)\events\checkPoints\components\CheckPointsList.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import api from '@/config/api';
-import { useUserState } from '@/store/user/user.store';
-import { Button, Card, CardTitle, Skeleton } from '@/components/ui';
-import { CardContent, CardHeader } from '@/components/ui/card';
-import { NotebookPen } from 'lucide-react';
-import { MaterialDetails } from '../../../new/checkPoint/[eventId]/components/CheckPoint-input';
-import { AlertComponent } from '@/components/ui/alert-component';
-import Link from 'next/link';
-import { CheckPointItem, CheckPointType } from '../../../new/checkPoint/[eventId]/components/CheckPointForm';
+import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button as UiButton } from '@/components/ui/button';
+import { H2 } from '@/components/ui/typography';
+import { AlertTriangle, Info, ListChecks, ServerCrash } from 'lucide-react';
 
-interface Event {
-    id: string;
-}
+import { CheckPointCard } from './CheckPointCard';
+import { useCheckPointsData, CheckPointItem } from '@/hooks/api/dashboard/official/useCheckPointsData';
+import { CenteredMessage } from '@/components/ui/centered-message';
 
+const CardSkeleton = () => (
+  <div className="border shadow-lg rounded-lg p-4 space-y-3 dark:border-gray-700 bg-card">
+    <div className="flex justify-between items-start">
+      <Skeleton className="h-6 w-3/5 mb-2" />
+      <Skeleton className="h-8 w-8 rounded-full" />
+    </div>
+    <div className="space-y-2.5">
+      <div className="flex items-center">
+        <Skeleton className="h-4 w-4 mr-2 rounded-full" />
+        <Skeleton className="h-4 w-1/4" />
+        <Skeleton className="h-4 w-1/2 ml-2" />
+      </div>
+      <div className="flex items-center">
+        <Skeleton className="h-4 w-4 mr-2 rounded-full" />
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-4 w-2/5 ml-2" />
+      </div>
+      <div className="flex items-center">
+        <Skeleton className="h-4 w-4 mr-2 rounded-full" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-1/3 ml-2" />
+      </div>
+      <div className="flex items-start">
+        <Skeleton className="h-4 w-4 mr-2 mt-0.5 rounded-full" />
+        <div>
+          <Skeleton className="h-4 w-1/4 mb-1.5" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ListSkeletonLoader = ({ itemCount = 2 }: { itemCount?: number }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array.from({ length: itemCount }).map((_, index) => (
+      <CardSkeleton key={index} />
+    ))}
+  </div>
+);
 
 export default function CheckPointsList() {
-    const [event, setEvent] = useState<Event>();
-    const [loading, setLoading] = useState<boolean>(true);
-    const [errorLoading, setErrorLoading] = useState<string | null>(null);
-    const [materialLoading, setMaterialLoading] = useState<boolean>(true);
-    const [controls, setControls] = useState<CheckPointItem[]>([]);
-    const [materialDetails, setMaterialDetails] = useState<MaterialDetails>({});
+  const {
+    event,
+    checkPoints,
+    materialDetails,
+    loadingEventAndCheckPoints,
+    loadingMaterialDetails,
+    error,
+    refetchData,
+  } = useCheckPointsData();
 
+  const isLoading = loadingEventAndCheckPoints;
 
-    const { user } = useUserState();
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const loadEvent = await api(user.access_token).get(`events/jury/today`);
-                const loadControls = await api(user.access_token).get(`events/checkPoints/event/${loadEvent.data.id}`);
-
-                setEvent(await loadEvent.data);
-                setControls(await loadControls.data);
-            } catch (error) {
-                const errorMessage = (error as any)?.response?.data?.message;
-                setErrorLoading(errorMessage || 'Error desconocido');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        const fetchMaterialDetails = async () => {
-            const details: MaterialDetails = {};
-            try {
-                setMaterialLoading(true);
-                for (const control of controls) {
-                    for (const item of control.material) {
-                        const response = await api(user.access_token).get(`events/equipment/${item}`);
-                        details[item] = response.data.name;
-                    }
-                }
-            } catch (error) {
-                const errorMessage = (error as any)?.response?.data?.message;
-                setErrorLoading(errorMessage || 'Error desconocido');
-            } finally {
-                setMaterialLoading(false);
-            }
-
-            setMaterialDetails(details);
-        };
-
-        fetchMaterialDetails();
-    }, [controls]);
-
-    const SkeletonLoader = () => (
-        <div className="max-w-xl mx-auto p-4">
-            <Skeleton height="h-8" width="w-full" className="my-4" />
-        </div>
-    );
-
-    if (errorLoading) {
-        return <div className="text-red-500">{errorLoading}</div>;
-    }
-
-    if (loading) {
-        return <SkeletonLoader />;
-    }
-
-    if (!controls.length) {
-        return <AlertComponent message="No hay puntos de control asignados para el evento de hoy" />;
-    }
-
+  if (isLoading) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {controls.map((checkPoint: any, index: number) => (
-                <Card
-                    key={index}
-                    className="relative border shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
-                >
-                    <Link href={`/dashboard/events/checkPoints/${checkPoint.id}`}>
-                        <CardHeader className=" border-b bg-primary-foreground rounded-lg">
-                            <CardTitle className="text-lg font-medium ">
-                                {checkPoint.name}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-3 ">
-                            <p>
-                                <span className="font-semibold ">Tipo de punto de control: </span>
-                                {checkPoint.type}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Distancias: </span>
-                                {checkPoint.distances.join(', ')} km
-                            </p>
-                            {(checkPoint.type === CheckPointType.CONTROL || checkPoint.type === CheckPointType.LIFEBAG) && (
-                                <p>
-                                    <span className="font-semibold">Punto kilométrico: </span>
-                                    {checkPoint.kmPosition} km
-                                </p>
-                            )}
-                            {materialLoading ? (
-                                <div className="flex items-center">
-                                    <span className="font-semibold ">Material: </span>
-                                    <Skeleton className="ml-2 h-5 w-full" />
-                                </div>
-                            ) : (
-                                <p>
-                                    <span className="font-semibold ">Material: </span>
-                                    {checkPoint.material.map((id: string) => materialDetails[id]).join(', ')}
-                                </p>
-                            )}
-                        </CardContent>
-                        <Button
-                            onClick={() => { }}
-                            variant="default"
-                            className="p-2 absolute top-2 right-2 w-10 bg-primary rounded-full"
-                        >
-                            <NotebookPen size={16} />
-                        </Button>
-                    </Link>
-                </Card>
-            ))}
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-10">
+          <Skeleton className="h-10 w-3/4 md:w-1/2 mx-auto mb-2" />
+          <Skeleton className="h-6 w-1/2 md:w-1/3 mx-auto" />
         </div>
-    )
+        <ListSkeletonLoader itemCount={checkPoints.length || 3} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {event && <H2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-primary dark:text-primary-foreground">{event.name}</H2>}
+        <CenteredMessage
+          variant='destructive'
+          icon={<ServerCrash size={48} />}
+          title="Error al Cargar Datos"
+          message={error || "Ocurrió un error inesperado. Por favor, intente de nuevo."}
+          action={
+            <UiButton onClick={refetchData} variant="default">
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Reintentar
+            </UiButton>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <CenteredMessage
+        icon={<Info size={48} />}
+        variant='default'
+        title="Sin Evento Asignado"
+        message="No hay evento asignado para hoy o no se pudo cargar la información del evento."
+      />
+    );
+  }
+
+  if (checkPoints.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <H2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-primary dark:text-primary-foreground">{event.name}</H2>
+        <CenteredMessage
+          icon={<ListChecks size={48} />}
+          title="Sin Puntos de Control"
+          message="No hay puntos de control asignados para este evento."
+          variant='default'
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <H2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-primary dark:text-primary-foreground">
+        Puntos de Control: {event.name}
+      </H2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {checkPoints.map((checkPoint: CheckPointItem) => (
+          <CheckPointCard
+            key={checkPoint.id}
+            checkPoint={checkPoint}
+            materialDetails={materialDetails}
+            isLoadingMaterial={loadingMaterialDetails && checkPoint.material.some((id: string) => !materialDetails[id])}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

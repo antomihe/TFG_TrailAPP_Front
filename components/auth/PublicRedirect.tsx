@@ -1,22 +1,29 @@
+// components\auth\PublicRedirect.tsx
 'use client';
 
-import { Loading } from '@/components/pages'
-
 import React from 'react';
-import usePublicRedirect from '@/hooks/usePublicRedirect';
+import usePublicRedirect from '@/hooks/auth/usePublicRedirect'; 
+import { Loading } from '@/components/pages'; 
 
-export function PublicRedirect<T>(Component: React.ComponentType<React.PropsWithChildren<T>>) {
-    return function PublicComponent(props: React.PropsWithChildren<T>) {
-        const { shouldRedirect, loading } = usePublicRedirect();
-                
-        if (loading) {
-            return <Loading />;
-        }
+interface PublicRedirectOptions {
+  redirectTo?: string; 
+}
 
-        if (!shouldRedirect) {
-            return <Component {...props} />;
-        }
+export function PublicRedirect<P extends object>( 
+  Component: React.ComponentType<P>,
+  options?: PublicRedirectOptions
+) {
+  return function PublicComponent(props: P) { 
+    const { shouldRedirect, loading } = usePublicRedirect(options?.redirectTo);
 
-        return null;
-    };
+    if (loading) {
+      return <Loading />;
+    }
+
+    if (shouldRedirect) {
+      return null;
+    }
+
+    return <Component {...props} />;
+  };
 }

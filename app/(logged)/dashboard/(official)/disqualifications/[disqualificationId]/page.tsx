@@ -1,12 +1,13 @@
+// app\(logged)\dashboard\(official)\disqualifications\[disqualificationId]\page.tsx
 import { Head } from "@/components/layout";
-import DisqualificationForm from "./components/DisqualificationForm";
+import DisqualificationReviewPage from "./components/DisqualificationReviewPage";
 
 export default function NewDisqualificationPage() {
     return (
         <>
             <Head title="Descalificaciones" subtitle="Partes de descalificación recibidos" />
 
-            <DisqualificationForm />
+            <DisqualificationReviewPage />
         </>
     )
 }

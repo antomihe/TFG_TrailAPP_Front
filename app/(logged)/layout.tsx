@@ -1,18 +1,13 @@
-'use client'
+// app\(logged)\dashboard\layout.tsx
+import { ReactNode } from 'react';
+import AuthGuard from '@/components/auth/AuthGuard';        
 
-import React, { ReactNode } from 'react';
-import { AuthRedirect } from '@/components/auth/AuthRedirect';
-
-const AuthLayout = ({ children }: { children: ReactNode }) => {
-    const AuthWrapper = AuthRedirect(({ children }: { children: ReactNode }) => (
-        <>{children}</>
-    ));
-
-    return (
-        <AuthWrapper>
-            {children}
-        </AuthWrapper>
-    );
-};
-
-export default AuthLayout;
+export default async function AuthenticatedLayout({ children }: { children: ReactNode }) {
+  return (
+      <AuthGuard>
+         <main> 
+          {children}
+        </main>
+      </AuthGuard>
+  );
+}

@@ -1,71 +1,86 @@
+// app\(logged)\dashboard\(organizer)\events\equipment\[eventId]\components\EquipmentInput.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch'; 
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label'; 
+import { EquipmentItemForm } from '@/hooks/api/dashboard/organizer/useEventEquipment'; 
 
-type Props = {
-    values: { name: string; optional: boolean; removed?: boolean }[];
-    setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
-    setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
-};
+interface EquipmentInputProps {
+  
+  onAddEquipment: (equipmentItem: Omit<EquipmentItemForm, 'id' | 'removed'>) => void;
+  existingEquipmentNames: string[]; 
+  disabled?: boolean;
+}
 
-export default function EquipmentInput({ values, setFieldValue, setFieldTouched }: Props) {
+export default function EquipmentInput({ onAddEquipment, existingEquipmentNames, disabled }: EquipmentInputProps) {
     const [inputValue, setInputValue] = useState<string>('');
-    const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
     const [isOptional, setIsOptional] = useState<boolean>(false);
+    const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
 
     useEffect(() => {
+        const trimmedValue = inputValue.trim().toLowerCase();
         setButtonDisabled(
-            inputValue.trim() === '' ||
-            values.some((item) => item.name.toLowerCase() === inputValue.trim().toLowerCase())
+            trimmedValue === '' ||
+            existingEquipmentNames.includes(trimmedValue)
         );
-    }, [inputValue, values]);
+    }, [inputValue, existingEquipmentNames]);
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !buttonDisabled) {
             event.preventDefault();
-            addTag();
+            addEquipmentItem();
         }
     };
 
-    const addTag = () => {
+    const addEquipmentItem = () => {
         const trimmedValue = inputValue.trim();
-        if (trimmedValue && !values.some((item) => item.name.toLowerCase() === trimmedValue.toLowerCase())) {
-            setFieldValue('equipment', [...values, { name: trimmedValue, optional: isOptional }]);
-            setFieldTouched('equipment', true, false);
+        if (!buttonDisabled && trimmedValue) { 
+            onAddEquipment({ name: trimmedValue, optional: isOptional });
             setInputValue('');
-            setIsOptional(false);
+            setIsOptional(false); 
         }
     };
 
     return (
-        <div className="flex items-center gap-2">
-            <Input
-                id="equipment"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onBlur={() => setFieldTouched('equipment', true)}
-                onKeyDown={handleKeyDown}
-                placeholder="Añadir material"
-                className="flex-grow"
-            />
-            <label className="flex items-center text-sm">
-                <span className="mr-2">Opcional</span>
-                <Switch
-                    checked={isOptional}
-                    onCheckedChange={(checked) => setIsOptional(checked)}
-                    className="h-6 w-12"
+        <div className="space-y-3 p-4 border rounded-lg dark:border-gray-700">
+            <Label htmlFor="new-equipment-name" className="text-md font-semibold">Añadir Nuevo Material</Label>
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                <Input
+                    id="new-equipment-name"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Nombre del material (ej. Manta de Emergencia)"
+                    autoComplete="off"
+                    className="flex-grow"
+                    disabled={disabled}
                 />
-            </label>
-            <Button
-                onClick={addTag}
-                variant="default"
-                disabled={buttonDisabled}
-            >
-                Añadir
-            </Button>
+                <div className="flex items-center space-x-2 pt-2 sm:pt-0">
+                    <Switch
+                        id="new-equipment-optional"
+                        checked={isOptional}
+                        onCheckedChange={setIsOptional}
+                        disabled={disabled}
+                    />
+                    <Label htmlFor="new-equipment-optional" className="text-sm whitespace-nowrap">
+                        Es opcional
+                    </Label>
+                </div>
+                <Button
+                    type="button" 
+                    onClick={addEquipmentItem}
+                    disabled={buttonDisabled || disabled}
+                    className="w-full sm:w-auto"
+                >
+                    Añadir
+                </Button>
+            </div>
+            {buttonDisabled && inputValue.trim() !== '' && (
+                 <p className="text-xs text-destructive">Este material ya existe en la lista.</p>
+            )}
         </div>
     );
 }

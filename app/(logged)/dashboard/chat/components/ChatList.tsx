@@ -1,126 +1,155 @@
-import { AlertComponent } from '@/components/ui/alert-component';
-import api from '@/config/api';
-import RolesEnum from '@/enums/Roles.enum';
-import { useUserState } from '@/store/user/user.store';
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// app\(logged)\dashboard\chat\components\ChatList.tsx
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PaginationComponent } from '@/components/ui/pagination-component'; 
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { H2 } from '@/components/ui/typography';
+import { PaginationComponent } from '@/components/ui/pagination-component';
+import { useChatList } from '@/hooks/api/dashboard/chat/useChatList';
+import { EventChatCard } from './EventChatCard';
+import { ServerCrash, MessageCircleOff, ListChecks, Loader2, ShieldAlert } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui';
+import { CenteredMessage } from '@/components/ui/centered-message';
 
-interface Event {
-    id: string;
-    name: string;
-    date: string;
-    location: string;
-    province: string;
-}
+const EventCardSkeleton = () => (
+    <Card className="flex flex-col justify-between h-full overflow-hidden rounded-lg border dark:border-neutral-800 bg-card shadow-md">
+        <div>
+            <CardHeader className="pb-3 border-b dark:border-neutral-700/70">
+                <Skeleton className="h-6 w-3/4" /> {/* Title */}
+                <Skeleton className="h-4 w-1/2 mt-1.5" /> {/* Date Description */}
+            </CardHeader>
+            <CardContent className="pt-4 space-y-2">
+                <div className="flex items-start">
+                    <Skeleton className="h-5 w-5 mr-2 rounded-full mt-0.5" /> {/* Icon placeholder */}
+                    <Skeleton className="h-4 w-full" /> {/* Location */}
+                </div>
+            </CardContent>
+        </div>
+        <CardFooter className="pt-3 pb-4 mt-auto">
+            <Skeleton className="h-9 w-full" /> {/* Button Skeleton */}
+        </CardFooter>
+    </Card>
+);
+
+
+const ListSkeletonLoader = ({ itemCount = 3 }: { itemCount?: number }) => (
+    <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-10">
+            <Skeleton className="h-8 w-1/3 mx-auto mb-3" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: itemCount }).map((_, index) => (
+                <EventCardSkeleton key={index} />
+            ))}
+        </div>
+        <div className="mt-8 flex justify-center">
+            <Skeleton className="h-10 w-64" />
+        </div>
+    </div>
+);
+
 
 export function ChatList() {
-    const getPageSize = () => {
-        if (window.innerWidth >= 1024) return 3; // Desktop
-        if (window.innerWidth >= 768) return 4; // Tablet
-        return 3; // Mobile
-    };
+    const {
+        events,
+        allEventsCount,
+        loading,
+        error,
+        isValidRoleForList,
+        redirectToEventId,
+        currentPage,
+        totalPages,
+        handlePageChange,
+        refetchEvents
+    } = useChatList();
 
     const router = useRouter();
-    const { user } = useUserState();
-    const [validRole, setValidRole] = useState(true);
-    const [errorLoading, setErrorLoading] = useState<string | null>(null);
-    const [events, setEvents] = useState<Event[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(getPageSize()); 
-    
-    useEffect(() => {
-        const handleResize = () => setPageSize(getPageSize());
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     useEffect(() => {
-        const fetchEvents = async () => {
-            setLoading(true);
-            try {
-                let response;
-                switch (user.role) {
-                    case RolesEnum.ATHLETE:
-                        response = await api(user.access_token).get(`/events/enroll/athlete/chat`);
-                        setEvents(response.data || []);
-                        break;
-                    case RolesEnum.OFFICIAL:
-                        response = await api(user.access_token).get(`/events/jury/today`);
-                        router.push(`/dashboard/chat/${response.data.id}`);
-                        break;
-                    case RolesEnum.ORGANIZER:
-                        response = await api(user.access_token).get(`/events/organizer/future/${user.id}`);
-                        setEvents(response.data || []);
-                        break;
-                    default:
-                        setValidRole(false);
-                        return;
-                }
-            } catch (error) {
-                const errorMessage = (error as any)?.response?.data?.message;
-                setErrorLoading(errorMessage || 'Error desconocido');
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (redirectToEventId) {
+            router.push(`/dashboard/chat/${redirectToEventId}`);
+        }
+    }, [redirectToEventId, router]);
 
-        fetchEvents();
-    }, [user]);
 
-    const paginatedEvents = events.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
 
-    const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage - 1);
-    };
-
-    const handleCardClick = (eventId: string) => {
-        router.push(`/dashboard/chat/${eventId}`);
-    };
-
-    if (!validRole) {
+    if (!isValidRoleForList && !loading) {
         return (
-            <AlertComponent message="Acceso a chat no autorizado para este tipo de usuario" className="max-w-full" />
+            <div className="container mx-auto px-4 py-8">
+                <CenteredMessage
+                    icon={<ShieldAlert size={48} />}
+                    title="Acceso No Autorizado"
+                    variant="warning"
+                    message="No tienes los permisos para editar tu perfil."
+                />
+            </div>
         );
     }
 
-    if (errorLoading) {
-        return <AlertComponent message={errorLoading} className="max-w-full" />;
+    if (loading && (!events || events.length === 0)) {
+        return <ListSkeletonLoader itemCount={3} />;
     }
 
-    if (loading) {
-        return <div className="text-center pt-5">Cargando...</div>;
-    }
-
-    if (!events || events.length === 0) {
-        return <AlertComponent message="No hay eventos disponibles" className="max-w-full" />;
+    if (error && (!events || events.length === 0)) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <CenteredMessage
+                    icon={<ServerCrash size={48} />}
+                    title="Error al Cargar Chats"
+                    variant="destructive"
+                    message={<>{error} <br /> No se pudieron obtener los eventos para el chat.</>}
+                    action={refetchEvents && (
+                        <Button onClick={refetchEvents} variant="destructive">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Reintentar
+                        </Button>
+                    )}
+                />
+            </div>
+        );
     }
 
     return (
-        <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {paginatedEvents.map((event) => (
-                    <Card key={event.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleCardClick(event.id)}>
-                        <CardHeader>
-                            <CardTitle>{event.name}</CardTitle>
-                            <CardDescription>{new Date(event.date).toLocaleDateString()}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p><strong>Ubicación:</strong> {event.location}</p>
-                            <p><strong>Provincia:</strong> {event.province}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+        <div className="container mx-auto px-4 py-8">
+            <H2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-primary dark:text-primary-foreground">
+                Chats de Eventos
+                {loading && <Loader2 className="ml-3 h-6 w-6 inline animate-spin text-muted-foreground" />}
+            </H2>
 
-            {events.length > 0 && (
+            {error && events && events.length > 0 && (
+                <Alert variant="destructive" className="mb-6">
+                    <ServerCrash className="h-4 w-4" />
+                    <AlertTitle>Error de Actualización</AlertTitle>
+                    <AlertDescription>
+                        No se pudieron cargar los datos más recientes ({error}). Mostrando información previa.
+                        {refetchEvents && <Button onClick={refetchEvents} variant="link" className="p-0 h-auto text-destructive-foreground underline ml-2">Reintentar</Button>}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {(!events || events.length === 0) && !loading && !error ? (
+                <CenteredMessage
+                    icon={<MessageCircleOff size={48} />}
+                    title="No Hay Eventos para Chatear"
+                    message="Actualmente no hay eventos disponibles con chat activo para tu rol."
+                />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {events.map((event) => (
+                        <EventChatCard
+                            key={event.id}
+                            event={event}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {allEventsCount > 0 && totalPages > 1 && (
                 <PaginationComponent
-                    className="mt-4"
+                    className="mt-10 flex justify-center"
                     currentPage={currentPage + 1}
-                    totalPages={Math.ceil(events.length / pageSize)}
-                    handlePageChange={handlePageChange}
+                    totalPages={totalPages}
+                    handlePageChange={(page) => handlePageChange(page - 1)}
                 />
             )}
         </div>

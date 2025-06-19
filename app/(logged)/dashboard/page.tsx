@@ -1,15 +1,18 @@
+// app\(logged)\dashboard\page.tsx
 'use client'
 
 import { Head } from "@/components/layout";
-import { useUserState } from "@/store/user/user.store";
 import { NationalFederationMenuGrid, FederationMenuGrid, AthleteMenuGrid, OrganizerMenuGrid, OfficialMenuGrid } from "./components/MenuGrid";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 export default function DashboardPage() {
-  const user = useUserState.getState().user;
+  const { user } = useAuth();
+  if (!user) {
+    return <div>No user found</div>; 
+  }
   return (
     <>
-
-    <Head title="Menú principal" subtitle={`Hola ${user.username} 👋`} />
+      <Head title="Menú principal" subtitle={`Hola ${user.username} 👋`} />
 
       {user.role === "NationalFederation" && <NationalFederationMenuGrid />}
       {user.role === "Federation" && <FederationMenuGrid />}

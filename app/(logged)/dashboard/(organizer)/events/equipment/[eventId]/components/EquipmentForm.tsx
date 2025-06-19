@@ -1,113 +1,115 @@
+// app\(logged)\dashboard\(organizer)\events\equipment\[eventId]\components\EquipmentForm.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Button, Skeleton } from '@/components/ui/';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import api from '@/config/api';
-import { useUserState } from '@/store/user/user.store';
-import { useParams } from 'next/navigation';
-import { toast } from 'sonner';
+import React from 'react';
+import { Formik, Form, FieldArray, ArrayHelpers } from 'formik'; 
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle, Skeleton, Button as UiButton } from '@/components/ui';
+import { FormikButton } from '@/components/ui'; 
 import EquipmentInput from './EquipmentInput';
 import EquipmentList from './EquipmentList';
+import {
+    useEventEquipment,
+    EventEquipmentFormValues,
+    EquipmentItemForm, 
+    EVENT_EQUIPMENT_FIELD_NAMES as FIELD_NAMES,
+} from '@/hooks/api/dashboard/organizer/useEventEquipment'; 
+import { toast } from 'sonner';
 
-const schema = Yup.object().shape({
-    equipment: Yup.array().of(
-        Yup.object().shape({
-            name: Yup.string().required('El nombre es obligatorio'),
-            optional: Yup.boolean(),
-            removed: Yup.boolean(),
-        })
-    ),
-});
-
-interface EquipmentItem {
-    name: string;
-    optional: boolean;
-    removed?: boolean;
-}
+const SkeletonLoader = () => (
+    <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <Skeleton className="h-16 w-full" /> {/* EquipmentInput */}
+        <Skeleton className="h-40 w-full" /> {/* EquipmentList */}
+        <Skeleton className="h-10 w-full mt-2" /> {/* Botón */}
+    </div>
+);
 
 export default function EquipmentForm() {
-    const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
-    const [sending, setSending] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [errorLoading, setErrorLoading] = useState<string>('');
-    const { eventId } = useParams();
-    const { user: userState } = useUserState();
+    const {
+        initialFormValues, 
+        loading,
+        error,
+        handleSaveEquipment,
+        refetchEquipment,
+        validationSchema,
+        
+    } = useEventEquipment();
 
-    useEffect(() => {
-        const fetchEquipment = async () => {
-            setLoading(true);
-            try {
-                const loadEquipment = await api(userState.access_token).get(`events/equipment/event/${eventId}`);
-                setEquipment(loadEquipment.data.map((item: EquipmentItem) => ({ ...item, removed: false })));
-            } catch (error) {
-                const errorMessage = (error as any)?.response?.data?.message;
-                setErrorLoading(errorMessage || 'Error desconocido');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchEquipment();
-    }, []);
 
-    const SkeletonLoader = () => (
-        <div className="max-w-xl mx-auto p-4">
-            <Skeleton height="h-8" width="w-full" className="my-4" />
-        </div>
-    );
-
-    if (loading) {
+    if (loading && initialFormValues.equipment.length === 0) { 
         return <SkeletonLoader />;
     }
 
-    if (errorLoading) {
-        return <p className="text-red-500 text-sm mt-4 text-center">{errorLoading}</p>;
+    if (error) {
+        return (
+            <div className="max-w-4xl mx-auto p-4">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Error al Cargar Material</AlertTitle>
+                    <AlertDescription>
+                        {error}
+                        <br />
+                        <UiButton onClick={refetchEquipment} variant="link" className="p-0 h-auto text-destructive underline mt-2">
+                            Reintentar
+                        </UiButton>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-4">
-            <Formik
-                enableReinitialize
-                initialValues={{ equipment }}
-                validationSchema={schema}
-                onSubmit={async (values, { setFieldValue }) => {
-                    try {
-                        setSending(true);
-                        const req = {
-                            equipment: values.equipment
-                                .filter(item => !item.removed)
-                                .map(({ name, optional }) => ({ name, optional })),
-                        };
-                        await api(userState.access_token).post(`/events/equipment/${eventId}`, req);
-                        toast.success('¡Éxito! Material guardado');
-                        setFieldValue('equipment', values.equipment.filter(item => !item.removed));
-
-                    } catch (error) {
-                        const errorMessage = (error as any)?.response?.data?.message;
-                        toast.error(errorMessage || 'Error: material no guardado');
-                    } finally {
-                        setSending(false);
-                    }
-                }}
+        <div className="max-w-2xl mx-auto p-4"> 
+            <Formik<EventEquipmentFormValues>
+                initialValues={initialFormValues} 
+                validationSchema={validationSchema}
+                onSubmit={handleSaveEquipment} 
+                enableReinitialize 
             >
-                {({ values, setFieldValue, setFieldTouched }) => (
+                {({ values, isSubmitting, errors, touched }) => (
                     <Form>
-                        <div className="space-y-5">
-                            <EquipmentInput
-                                setFieldValue={setFieldValue}
-                                setFieldTouched={setFieldTouched}
-                                values={values.equipment}
-                            />
-                            <EquipmentList
-                                values={values.equipment}
-                                setFieldValue={setFieldValue}
-                            />
+                        <h2 className="text-xl font-semibold text-center mb-6">Configurar Material del Evento</h2>
+                        <div className="space-y-6">
+                            <FieldArray name={FIELD_NAMES.equipment}>
+                                {(arrayHelpers: ArrayHelpers) => ( 
+                                    <>
+                                        <EquipmentInput
+                                            onAddEquipment={(newItem) => {
+                                                
+                                                const exists = values.equipment.some(
+                                                    (item) => item.name.toLowerCase() === newItem.name.toLowerCase() && !item.removed
+                                                );
+                                                if (!exists) {
+                                                    arrayHelpers.push({ ...newItem, removed: false });
+                                                } else {
+                                                    toast.error("Este material ya existe en la lista activa.");
+                                                }
+                                            }}
+                                            existingEquipmentNames={values.equipment
+                                                                        .filter(item => !item.removed)
+                                                                        .map(item => item.name.toLowerCase())}
+                                            disabled={isSubmitting}
+                                        />
+                                        <EquipmentList
+                                            equipmentItems={values.equipment} 
+                                            arrayHelpers={arrayHelpers as any} 
+                                            disabled={isSubmitting}
+                                        />
+                                    </>
+                                )}
+                            </FieldArray>
+                            {typeof errors.equipment === 'string' && touched.equipment && (
+                                 <p className="text-xs text-destructive mt-1">{errors.equipment}</p>
+                            )}
                         </div>
 
-                        <Button type="submit" className="w-full mt-6" disabled={sending}>
-                            {sending ? 'Cargando...' : 'Guardar'}
-                        </Button>
+                        <FormikButton
+                            type="submit"
+                            disabled={loading} 
+                            className="w-full mt-8"
+                        >
+                            Guardar Cambios en Material
+                        </FormikButton>
                     </Form>
                 )}
             </Formik>

@@ -1,15 +1,14 @@
-'use client'
+// app\(logged)\dashboard\chat\[eventId]\page.tsx
+'use client';
 
 import { Head } from "@/components/layout";
-import Connection from "./components/connection";
+import ChatPageContent from "./components/ChatPageContent"; 
 
-export default function DashboardPage() {
-    return (
-        <>
-
-            <Head title="Chat" subtitle="Chat de un evento"/>
-
-            <Connection />
-        </>
+export default function ChatEventPage() {
+    return ( 
+        <div className="w-full h-full flex flex-col">
+            <Head title="Chat del Evento" subtitle="Comunicación en tiempo real" />
+            <ChatPageContent />
+        </div>
     );
 }

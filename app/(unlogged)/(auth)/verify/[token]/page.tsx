@@ -1,5 +1,5 @@
-import VerifyForm from './components/VerifyForm'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import VerifyForm from "./components/AccountVerificationForm"
 
 export default function PasswordPage({ params }: { params: { token: string } }) {
 

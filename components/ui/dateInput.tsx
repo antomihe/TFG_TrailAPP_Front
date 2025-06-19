@@ -1,3 +1,4 @@
+// components\ui\dateInput.tsx
 'use client';
 
 import * as React from "react";
@@ -8,12 +9,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "./label";
 
-type Props = {
+export type DateInputProps = {
+    id?: string;
+    name?: string;
     date: Date | string | null;
-    fromDate?: Date | undefined;
+    fromDate?: Date;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
     setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
+    disabled?: boolean;
+    label?: string;
 };
 
 const setDateToNoon = (date: Date) => {
@@ -22,23 +28,42 @@ const setDateToNoon = (date: Date) => {
     return newDate;
 };
 
-export function DateInput({ date, setFieldValue, setFieldTouched, fromDate = undefined }: Props) {
-    const validDate = typeof date === 'string' ? setDateToNoon(parseISO(date)) : date;
-
+export function DateInput({
+    label,
+    id = "date",
+    name = "date",
+    date,
+    setFieldValue,
+    setFieldTouched,
+    fromDate,
+    disabled = false,
+}: Props) {
+    const validDate = typeof date === "string" ? setDateToNoon(parseISO(date)) : date;
     const isDateValid = validDate && isValid(validDate);
 
     const handleSelectDate = (selectedDate: Date | undefined) => {
         if (selectedDate) {
-            setFieldValue('date', setDateToNoon(selectedDate));
+            setFieldValue(name, setDateToNoon(selectedDate), true);
         }
     };
 
     return (
         <div>
-            <Popover>
+            {label && <Label htmlFor={id}>{label}</Label>}
+            <Popover
+                onOpenChange={(open) => {
+                    if (!open) {
+                        const shouldValidate = !isDateValid;
+                        setFieldTouched(name, true, shouldValidate);
+                    }
+                }}
+            >
+
                 <PopoverTrigger asChild>
                     <Button
-                        variant={"outline"}
+                        variant="outline"
+                        id={id}
+                        name={name}
                         className={cn(
                             "w-full justify-start text-left font-normal",
                             !isDateValid && "text-muted-foreground"
@@ -49,15 +74,16 @@ export function DateInput({ date, setFieldValue, setFieldTouched, fromDate = und
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                    onBlur={() => setFieldTouched("date", true)}
-                    className="w-auto p-0">
+                    className="w-auto p-0"
+                >
                     <Calendar
                         mode="single"
                         fromDate={fromDate}
                         selected={isDateValid ? validDate : undefined}
-                        required={true}
+                        required
                         onSelect={handleSelectDate}
                         initialFocus
+                        disabled={disabled}
                     />
                 </PopoverContent>
             </Popover>

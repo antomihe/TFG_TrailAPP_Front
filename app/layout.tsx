@@ -1,17 +1,17 @@
+// app\layout.tsx
+import './globals.css';
 import type { Metadata } from 'next';
 import { inter } from '@/config/fonts';
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-
-
-import './globals.css';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'TrailApp',
   description: 'Gestión de trails',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
@@ -20,15 +20,18 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-        <Toaster position='top-right' expand={false} richColors closeButton />
+        <AuthProvider>
+
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+          <Toaster position='top-right' expand={false} richColors closeButton />
+        </AuthProvider>
       </body>
     </html>
   )

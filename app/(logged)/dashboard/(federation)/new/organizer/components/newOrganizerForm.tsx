@@ -1,122 +1,104 @@
+// app\(logged)\dashboard\(federation)\new\organizer\components\newOrganizerForm.tsx
+
 'use client';
 
 import React from 'react';
-import { Button, Input, Label, Skeleton } from '@/components/ui/';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import api from '@/config/api';
-import { useUserState } from '@/store/user/user.store';
-import { toast } from 'sonner';
-
-const schema = Yup.object().shape({
-    email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
-    name: Yup.string().required('El nombre es obligatorio'),
-    federationCode: Yup.string()
-        .required('El código de federación es obligatorio')
-        .matches(/^[A-Z]{3}$/, 'El código de federación debe tener 3 letras mayúsculas'),
-});
+import { Formik, Form, Field } from 'formik';
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FormikField, FormikButton, Button } from '@/components/ui';
+import {
+    useNewOrganizerForm,
+    NewOrganizerFormValues,
+} from '@/hooks/api/dashboard/federation/useNewOrganizerForm';
 
 const SkeletonLoader = () => (
-    <div className="max-w-xl mx-auto p-4">
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
-        <Skeleton height="h-8" width="w-full" className="my-4" />
+    <div className="max-w-xl mx-auto p-4 space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full mt-6" />
     </div>
 );
 
 export default function NewOrganizerForm() {
-    const [loading, setLoading] = React.useState(false);
-    const [sending, setSending] = React.useState(false);
-    const [fedCode, setFedCode] = React.useState<string>('');
-    const { user: userState } = useUserState();
+    const {
+        initialFormValues,
+        loadingFedCode,
+        refetchFederationCode,
+        errorLoadingFedCode,
+        validationSchema,
+        handleCreateOrganizer,
+        FIELD_NAMES,
+    } = useNewOrganizerForm();
 
-    React.useEffect(() => {
-        const fetchFederations = async () => {
-            setLoading(true);
-            try {
-                const res = await api(userState.access_token).get(`users/federation/id/${userState.id}`);
-                setFedCode(res.data.code || '');
-            } catch (error) {
-                console.error('Error fetching federation code:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    if (loadingFedCode) {
+        return <SkeletonLoader />;
+    }
 
-        if (!fedCode) fetchFederations();
-    }, []);
-
-    if (loading) return <SkeletonLoader />;
+    if (errorLoadingFedCode) {
+        return (
+            <div className="max-w-xl mx-auto p-4">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                        {errorLoadingFedCode}
+                        <Button onClick={refetchFederationCode} variant="outline" size="sm" className="mt-2">
+                            Reintentar carga de código
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    No se puede crear un organizador sin un código de federación válido asociado a tu cuenta.
+                    Por favor, contacta con soporte si el problema persiste.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-xl mx-auto p-4">
-            <Formik
+            <Formik<NewOrganizerFormValues>
+                initialValues={initialFormValues}
+                validationSchema={validationSchema}
+                onSubmit={handleCreateOrganizer}
                 enableReinitialize
-                initialValues={{
-                    email: '',
-                    name: '',
-                    federationCode: fedCode,
-                }}
-                validationSchema={schema}
-                onSubmit={async (values, {resetForm}) => {
-                    try {
-                        setSending(true);
-                        await api(userState.access_token).post(`/users/organizer`, values);
-                        toast.success('¡Éxito! Nuevo organizador creado');
-                        resetForm();
-                    } catch (error) {
-                        const errorMessage = (error as any)?.response?.data?.message;
-                        toast.error(errorMessage || 'Error desconocido');
-                    } finally {
-                        setSending(false);
-                    }
-                }}
             >
-                {({ values, handleChange, handleBlur, touched, errors }) => (
-                    <Form>
-                        <div className="space-y-2">
-                            <div className="space-y-1">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    placeholder="trail@runners.com"
-                                    value={values.email}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                />
-                                {touched.email && errors.email && (
-                                    <p className="text-red-500 text-sm">{errors.email}</p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="name">Nombre</Label>
-                                <Input
-                                    id="name"
-                                    placeholder="Club de atletismo Trail Runners"
-                                    value={values.name}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                />
-                                {touched.name && errors.name && (
-                                    <p className="text-red-500 text-sm">{errors.name}</p>
-                                )}
-                            </div>
-                            <div className='hidden'>
-                                <Label htmlFor="federationCode">Código de federación</Label>
-                                <Input
-                                    id="federationCode"
-                                    value={values.federationCode}
-                                    disabled
-                                />
-                            </div>
-                        </div>
+                <Form className="space-y-4">
+                    <h2 className="text-xl font-semibold mb-4">Crear Nuevo Organizador</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Este nuevo usuario organizador estará asociado a tu federación
+                        (Código: {initialFormValues.federationCode || "N/A"}).
+                    </p>
 
-                        <Button type="submit" className="w-full mt-6" disabled={sending}>
-                            {sending ? 'Cargando...' : 'Crear usuario'}
-                        </Button>
-                    </Form>
-                )}
+                    <FormikField
+                        name={FIELD_NAMES.email}
+                        label="Email del Organizador"
+                        type="email"
+                        placeholder="organizer@example.com"
+                        autoComplete="email"
+                    />
+
+                    <FormikField
+                        name={FIELD_NAMES.name}
+                        label="Nombre del Organizador (Club, Entidad, etc.)"
+                        placeholder="Club Deportivo Ejemplo"
+                        autoComplete="organization"
+                    />
+
+                    <Field
+                        type="hidden"
+                        name={FIELD_NAMES.federationCode}
+                    />
+
+                    <FormikButton
+                        type="submit"
+                        className="w-full mt-6"
+                        disabled={loadingFedCode || !initialFormValues.federationCode}
+                    >
+                        Crear Organizador
+                    </FormikButton>
+                </Form>
             </Formik>
         </div>
     );

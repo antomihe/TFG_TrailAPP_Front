@@ -1,103 +1,90 @@
-import React from 'react'
+import React, { HTMLAttributes } from 'react';
 
-interface typographyProps {
-    className?: string;
-    children: React.ReactNode;
-}
+type HeadingProps = HTMLAttributes<HTMLHeadingElement>;
+type ParagraphProps = HTMLAttributes<HTMLParagraphElement>;
+type BlockquoteProps = HTMLAttributes<HTMLElement>;
+type CodeProps = HTMLAttributes<HTMLElement>;
 
-const H1: React.FC<typographyProps> = ({ className, children }) => {
-    return (
+// Encabezados
+export const H1: React.FC<HeadingProps> = ({ className = '', children, ...props }) => (
+  <h1
+    className={`scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl ${className}`}
+    {...props}
+  >
+    {children}
+  </h1>
+);
 
-        <h1 className={`scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl ${className}`}>
-            {children}
-        </h1>
+export const H2: React.FC<HeadingProps> = ({ className = '', children, ...props }) => (
+  <h2
+    className={`scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ${className}`}
+    {...props}
+  >
+    {children}
+  </h2>
+);
 
-    )
-}
+export const H3: React.FC<HeadingProps> = ({ className = '', children, ...props }) => (
+  <h3
+    className={`scroll-m-20 text-2xl font-semibold tracking-tight ${className}`}
+    {...props}
+  >
+    {children}
+  </h3>
+);
 
-const H2: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <h2 className={`scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ${className}`}>
-            {children}
-        </h2>
-    )
-}
+export const H4: React.FC<HeadingProps> = ({ className = '', children, ...props }) => (
+  <h4
+    className={`scroll-m-20 text-xl font-semibold tracking-tight ${className}`}
+    {...props}
+  >
+    {children}
+  </h4>
+);
 
-const H3: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <h3 className={`scroll-m-20 text-2xl font-semibold tracking-tight ${className}`}>
-            {children}
-        </h3>
-    )
-}
+// Párrafos
+export const P: React.FC<ParagraphProps> = ({ className = '', children, ...props }) => (
+  <p className={`leading-7 [&:not(:first-child)]:mt-6 ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-const H4: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <h4 className={`scroll-m-20 text-xl font-semibold tracking-tight ${className}`}>
-            {children}
-        </h4>
-    )
-}
+export const Lead: React.FC<ParagraphProps> = ({ className = '', children, ...props }) => (
+  <p className={`text-xl text-muted-foreground ${className}`} {...props}>
+    {children}
+  </p>
+);
 
+export const Large: React.FC<ParagraphProps> = ({ className = '', children, ...props }) => (
+  <p className={`text-lg font-semibold ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-const P: React.FC<typographyProps> = ({ className, children }) => {
+export const Small: React.FC<ParagraphProps> = ({ className = '', children, ...props }) => (
+  <p className={`text-sm font-medium leading-none ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-    return (
-        <p className={`leading-7 [&:not(:first-child)]:mt-6 ${className}`}>
-            {children}
-        </p>
-    )
-}
+export const Muted: React.FC<ParagraphProps> = ({ className = '', children, ...props }) => (
+  <p className={`text-sm text-muted-foreground ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-const Blockquote: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <blockquote className={`mt-6 border-l-2 pl-6 italic ${className}`}>
-            {children}
-        </blockquote>
-    )
-}
+// Otros
+export const Blockquote: React.FC<BlockquoteProps> = ({ className = '', children, ...props }) => (
+  <blockquote className={`mt-6 border-l-2 pl-6 italic ${className}`} {...props}>
+    {children}
+  </blockquote>
+);
 
-const Lead: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <p className={`text-xl text-muted-foreground ${className}`}>
-            {children}
-        </p>
-    )
-}
-
-const Large: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <p className={`text-lg font-semibold ${className}`}>
-            {children}
-        </p>
-    )
-}
-
-const Small: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <p className={`text-sm font-medium leading-none ${className}`}>
-            {children}
-        </p>
-    )
-}
-
-const Muted: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <p className={`text-sm text-muted-foreground ${className}`}>
-            {children}
-        </p>
-    )
-}
-
-const InlineCode: React.FC<typographyProps> = ({ className, children }) => {
-    return (
-        <code className={`relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold ${className}`}>
-            {children}
-        </code>
-    )
-}
-
-
-
-
-export { H1, H2, H3, H4, P, Blockquote, Lead, Large, Small, Muted, InlineCode }
+export const InlineCode: React.FC<CodeProps> = ({ className = '', children, ...props }) => (
+  <code
+    className={`relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold ${className}`}
+    {...props}
+  >
+    {children}
+  </code>
+);

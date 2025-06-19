@@ -1,22 +1,21 @@
+// app\(logged)\dashboard\(federation)\layout.tsx
+
 'use client';
 
 import React, { ReactNode } from 'react';
-import { RoleRedirect } from '@/components/auth/RoleRedirect';
-import RoleEnum from '@/enums/Roles.enum';
+import RoleGuard from '@/components/auth/RoleGuard';
+import { RolesEnum } from '@/lib/auth-types';
 
-const NationalFederationLayout = ({ children }: { children: ReactNode }) => {
-    const RoleWrapper = RoleRedirect(
-        ({ children }: { children: ReactNode }) => <>{children}</>,
-        RoleEnum.FEDERATION,
-        { component: ({ children }: { children: ReactNode }) => <>{children}</>, role: RoleEnum.FEDERATION }
-    );
 
-    return (
-        <RoleWrapper>
-            {children}
-        </RoleWrapper>
-    );
+const FederationLayout = ({ children }: { children: ReactNode }) => {
+  return (
+    <RoleGuard
+      allowedRoles={[RolesEnum.FEDERATION]}
+      redirectPath="/dashboard"
+    >
+      {children}
+    </RoleGuard>
+  );
 };
 
-export default NationalFederationLayout;
-
+export default FederationLayout;

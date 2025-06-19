@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\layout.tsx
 'use client'
 
 import React, { PropsWithChildren, useState, useEffect } from "react";
@@ -8,9 +9,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { LogoIcon as LogoIconComponent, ThemeIconButton } from "@/components/theme/";
-import { useUserState } from "@/store/user/user.store";
 import { useRouter } from 'next/navigation'
 import { Footer } from "@/components/layout/footer";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 
 export function Dashboard({ children }: PropsWithChildren) {
@@ -18,6 +19,7 @@ export function Dashboard({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const router = useRouter();
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (shouldRedirect) router.push('/');
@@ -55,7 +57,7 @@ export function Dashboard({ children }: PropsWithChildren) {
                 ),
               }}
               onClick={() => {
-                useUserState.getState().logout();
+                logout();
                 setShouldRedirect(true);
               }}
             />

@@ -1,3 +1,4 @@
+// app\page.tsx
 import React from 'react';
 
 import { BackgroundLines } from '@/components/ui/background-lines';

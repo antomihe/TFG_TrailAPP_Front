@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import OfficialForm from "./components/OfficialForm"
-import AthleteForm from "./components/AthleteForm"
+import OfficialForm from "./components/OfficialRegistrationForm"
+import AthleteForm from "./components/AthleteRegistrationForm"
 
 
 export default function RegisterPage() {

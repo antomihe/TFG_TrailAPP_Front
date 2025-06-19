@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\page.tsx
 import { Head } from "@/components/layout"
 import EventsJuryList from "./components/EventJuryList"
 
