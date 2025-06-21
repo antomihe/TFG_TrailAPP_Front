@@ -7,12 +7,12 @@ interface ErrorResponseData {
   message?: string;
 }
 
-const api = (token: string | undefined = undefined, version: string = 'v1') => {
+const api = (token: string | undefined = undefined, version: number = 2) => {
     if (!process.env.NEXT_PUBLIC_API_URL) {
         throw new Error('NEXT_PUBLIC_API_URL is not defined in the environment variables.');
     }
     return axios.create({
-        baseURL: `${process.env.NEXT_PUBLIC_API_URL}/${version}`,
+        baseURL: `${process.env.NEXT_PUBLIC_API_URL}/v${version}`,
         timeout: 5000,
         headers: {
             'Content-Type': 'application/json',
