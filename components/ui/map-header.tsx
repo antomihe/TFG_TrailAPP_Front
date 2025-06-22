@@ -7,11 +7,12 @@ import Image from "next/image";
 import { Small } from "./typography";
 
 type Props = {
-  coordinates: [number, number]; // [latitude, longitude]
+  latitude: number;
+  longitude: number;
   zoom?: number;
 };
 
-function MapHeader({ coordinates, zoom = 10 }: Props) {
+function MapHeader({ latitude, longitude, zoom = 10 }: Props) {
   const { theme } = useTheme();
   const [tilesUrl, setTilesUrl] = useState("");
 
@@ -19,7 +20,7 @@ function MapHeader({ coordinates, zoom = 10 }: Props) {
     type: "Feature",
     geometry: {
       type: "Point",
-      coordinates: [+coordinates[1], +coordinates[0]], // GeoJSON usa formato [longitude, latitude]
+      coordinates: [+longitude, +latitude],
     },
     properties: { description: "Ubicación del evento" },
   };
@@ -36,19 +37,19 @@ function MapHeader({ coordinates, zoom = 10 }: Props) {
     return null;
   }
 
-  if (coordinates[0] === 0 && coordinates[1] === 0) return (
+  if (!latitude || !longitude || latitude === 0 && longitude === 0) return (
     <div className="flex flex-col items-center justify-center h-full">
       <div style={{ opacity: 0.8 }}>
-      <Image src="/map-not-avaible.png" alt="Mapa no disponible" width={120} height={60} />
+        <Image src="/map-not-avaible.png" alt="Mapa no disponible" width={120} height={60} />
       </div>
       <Small className="text-muted text-center mt-2">Ubicación no disponible</Small>
     </div>
-      
+
   )
 
   return (
     <Map
-      defaultCenter={[+coordinates[0], +coordinates[1]]}
+      defaultCenter={[+latitude, +longitude]} 
       defaultZoom={zoom}
       provider={(x, y, z) => tilesUrl.replace("{z}", z.toString()).replace("{x}", x.toString()).replace("{y}", y.toString())}
     >

@@ -379,31 +379,9 @@ export interface CreateEventDto {
   distances: string[];
 }
 
-export interface EventWithCoordinatesDto {
-  /** Event ID */
-  id: string;
-  /** Event name */
-  name: string;
-  /**
-   * Event date
-   * @format date-time
-   */
-  date: string;
-  /** Event location */
-  location: string;
-  /** Event province */
-  province: string;
-  /** Validation status */
-  validated: boolean;
-  /** Event distances */
-  distances: string[];
-  /** Event coordinates */
-  coordinates: number[];
-}
-
-export interface EventPaginatedEventWithCoordinatesResponseDto {
+export interface EventPaginatedResponseDto {
   /** List of events with coordinates */
-  data: EventWithCoordinatesDto[];
+  event: EventResponseDto[];
   /** Total number of events */
   total: number;
   /** Current page number */
@@ -413,45 +391,108 @@ export interface EventPaginatedEventWithCoordinatesResponseDto {
 }
 
 export interface EventResponseDto {
-  /** Event ID */
+  /** 
+   * Event ID
+   * @example 78a66519-5f84-4927-a662-47466d2cf492
+   */
   id: string;
-  /** Event name */
+  /** 
+   * Event name 
+   * @example Trail de la Cueva
+   */
   name: string;
   /**
    * Event date
    * @format date-time
    */
   date: string;
-  /** Event location */
+  /** Event location
+   * @example Valladolid
+   */
   location: string;
-  /** Event province */
+  /** Event province 
+   * @example Valladolid
+  */
   province: string;
-  /** Validation status */
+  /** 
+   * Validation status 
+   * @example true
+  */
   validated: boolean;
-  /** Event distances */
+  /** Event distances 
+   * @example ["10", "21", "42"]
+  */
   distances: string[];
+  /** 
+   * Event latitude
+   * @example 41.6528
+   */
+  latitude: number;
+  /** 
+   * Event longitude 
+   * @example -4.7286
+   */
+  longitude: number;
 }
 
 export interface EventFederationResponseDto {
-  /** Event ID */
+  /** 
+   * Event ID
+   * @example 78a66519-5f84-4927-a662-47466d2cf492
+   */
   id: string;
-  /** Event name */
+  /** 
+   * Event name 
+   * @example Trail de la Cueva
+   */
   name: string;
   /**
    * Event date
    * @format date-time
    */
   date: string;
-  /** Event location */
+  /** Event location
+   * @example Valladolid
+   */
   location: string;
-  /** Event province */
+  /** Event province 
+   * @example Valladolid
+  */
   province: string;
-  /** Validation status */
+  /** 
+   * Validation status 
+   * @example true
+  */
   validated: boolean;
-  /** Event distances */
+  /** Event distances 
+   * @example ["10", "21", "42"]
+  */
   distances: string[];
-  /** Federation name */
-  federation: string;
+  /** 
+   * Event latitude
+   * @example 41.6528
+   */
+  latitude: number;
+  /** 
+   * Event longitude 
+   * @example -4.7286
+   */
+  longitude: number;
+  /** 
+   * Federation name
+   * @example Federación de Atletismo de Castilla y León
+   */
+  federationName: string;
+  /** 
+   * Federation name
+   * @example 98aai519-5f84-4927-a662-47466d2cf49d
+   */
+  federationId: string;
+  /** 
+   * Federation cod
+   * @example CYL
+   */
+  federationCode:string
 }
 
 export interface EventNameResponseDto {

@@ -24,7 +24,7 @@ export const EventBentoCard: React.FC<EventBentoCardProps> = ({ event }) => {
             className="group/bento flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/30 dark:border-neutral-800 dark:hover:border-primary/50"
             header={
                 <div className="relative h-40 sm:h-48 md:h-full overflow-hidden"> 
-                    <MapHeader coordinates={[event.coordinates[0], event.coordinates[1]] as [number, number]} />
+                    <MapHeader latitude={event.latitude} longitude={event.longitude} zoom={9} />
                 </div>
             }
             icon={null} 
