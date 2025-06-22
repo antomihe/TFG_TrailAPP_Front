@@ -133,7 +133,7 @@ export interface AthleteResponseDto {
    * Athlete name
    * @example John Doe
    */
-  name: string;
+  fullName: string;
   /**
    * Athlete bib number
    * @example 42
@@ -275,7 +275,7 @@ export interface OfficialResponseDto {
   /** @example official@example.com */
   email: string;
   /** @example John Doe */
-  name: string;
+  fullName: string;
 }
 
 export interface UpdateOfficialDto {
@@ -467,26 +467,69 @@ export interface EventNameResponseDto {
   name: string;
 }
 
-export interface EventOrganizerResponseDto {
-  /** Event ID */
+export interface OrganizerForEventResponseDto {
+  /**
+   * Organizer ID
+   * @example 8e2d48a4-654b-42b1-8e20-33c16a2e7bb4
+   */
   id: string;
-  /** Event name */
+  /**
+   * Organizer name
+   * @example Club de Trail Running
+   */
+  name: string;
+  /**
+   * Organizer email
+   * @example organizer@example.com
+   */
+  email: string;
+}
+
+export interface EventOrganizerResponseDto {
+  /** 
+   * Event ID
+   * @example 78a66519-5f84-4927-a662-47466d2cf492
+   */
+  id: string;
+  /** 
+   * Event name 
+   * @example Trail de la Cueva
+   */
   name: string;
   /**
    * Event date
    * @format date-time
    */
   date: string;
-  /** Event location */
+  /** Event location
+   * @example Valladolid
+   */
   location: string;
-  /** Event province */
+  /** Event province 
+   * @example Valladolid
+  */
   province: string;
-  /** Validation status */
+  /** 
+   * Validation status 
+   * @example true
+  */
   validated: boolean;
-  /** Event distances */
+  /** Event distances 
+   * @example ["10", "21", "42"]
+  */
   distances: string[];
+  /** 
+   * Event latitude
+   * @example 41.6528
+   */
+  latitude: number;
+  /** 
+   * Event longitude 
+   * @example -4.7286
+   */
+  longitude: number;
   /** Organizer */
-  organizer: Record<string, any>;
+  organizer: OrganizerForEventResponseDto;
 }
 
 export interface UpdateEventDto {
