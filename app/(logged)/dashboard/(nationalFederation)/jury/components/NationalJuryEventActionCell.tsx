@@ -19,11 +19,11 @@ export const NationalJuryEventActionCell: React.FC<NationalJuryEventActionCellPr
   const event = row.original;
 
   const handleClick = () => {
-    router.push(`/dashboard/national-federation/jury/${event.id}`); 
+    router.push(`/dashboard/jury/${event.id}`); 
   };
 
   const handlePrefetch = () => {
-    router.prefetch(`/dashboard/national-federation/jury/${event.id}`); 
+    router.prefetch(`/dashboard/jury/${event.id}`); 
   };
 
   return (

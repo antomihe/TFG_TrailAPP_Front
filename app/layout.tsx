@@ -5,6 +5,7 @@ import { inter } from '@/config/fonts';
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from '@/contexts/AuthContext';
+import DemoToast from '@/components/layout/demoWarning';
 
 export const metadata: Metadata = {
   title: 'TrailApp',
@@ -28,6 +29,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <DemoToast />
             {children}
           </ThemeProvider>
           <Toaster position='top-right' expand={false} richColors closeButton />
