@@ -51,17 +51,17 @@ export const HoverEffect = ({
               />
             )}
           </AnimatePresence>
-          <Card>
-            <CardTitle>{item.title}</CardTitle>
-            <CardDescription>{item.description}</CardDescription>
-          </Card>
+          <HoverEffectCard>
+            <HoverEffectCardTitle>{item.title}</HoverEffectCardTitle>
+            <HoverEffectCardDescription>{item.description}</HoverEffectCardDescription>
+          </HoverEffectCard>
         </Link>
       ))}
     </div>
   );
 };
 
-export const Card = ({
+export const HoverEffectCard = ({
   className,
   children,
 }: {
@@ -82,7 +82,7 @@ export const Card = ({
   );
 };
 
-export const CardTitle = ({
+export const HoverEffectCardTitle = ({
   className,
   children,
 }: {
@@ -96,7 +96,7 @@ export const CardTitle = ({
   );
 };
 
-export const CardDescription = ({
+export const HoverEffectCardDescription = ({
   className,
   children,
 }: {

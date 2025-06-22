@@ -18,7 +18,7 @@ export type NationalJudgeFormData = {
     originalData?: JuryResponseDto & { officialName?: string };
 };
 
-export type NationalOfficialOption = Pick<OfficialResponseDto, 'id' | 'displayName'>;
+export type NationalOfficialOption = Pick<OfficialResponseDto, 'id' | 'fullName'>;
 
 interface SubmitNationalJuryValues {
     judges: NationalJudgeFormData[];
@@ -58,7 +58,7 @@ export const useNationalJuryFormData = () => {
             }
 
             const resOfficials = await api(token).get<OfficialResponseDto[]>(`users/official/for-national-federation`);
-            setOfficials(Array.isArray(resOfficials.data) ? resOfficials.data.map(o => ({ id: o.id, displayName: o.displayName })) : []);
+            setOfficials(Array.isArray(resOfficials.data) ? resOfficials.data.map(o => ({ id: o.id, fullName: o.fullName })) : []);
 
             const resJury = await api(token).get<JuryResponseDto[]>(`/events/jury/for-event/${eventId}`);
             const currentApiJury = Array.isArray(resJury.data) ? resJury.data : [];
@@ -73,7 +73,7 @@ export const useNationalJuryFormData = () => {
                 if (apiJudge.userId) {
                     try {
                         const officialRes = await api(token).get<OfficialResponseDto>(`users/official/${apiJudge.userId}`);
-                        officialName = officialRes.data.displayName || 'Nombre Desconocido';
+                        officialName = officialRes.data.fullName || 'Nombre Desconocido';
                     } catch (fetchOfficialError) {
                         console.warn(`Error fetching official ${apiJudge.userId}:`, fetchOfficialError);
                         officialName = 'Oficial (Error al cargar)';

@@ -9,11 +9,11 @@ import { PaginationComponent } from '@/components/ui/pagination-component';
 import { useChatList } from '@/hooks/api/dashboard/chat/useChatList';
 import { EventChatCard } from './EventChatCard';
 import { ServerCrash, MessageCircleOff, ListChecks, Loader2, ShieldAlert } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui';
+import { HoverEffectCard, CardContent, CardFooter, CardHeader } from '@/components/ui';
 import { CenteredMessage } from '@/components/ui/centered-message';
 
 const EventCardSkeleton = () => (
-    <Card className="flex flex-col justify-between h-full overflow-hidden rounded-lg border dark:border-neutral-800 bg-card shadow-md">
+    <HoverEffectCard className="flex flex-col justify-between h-full overflow-hidden rounded-lg border dark:border-neutral-800 bg-card shadow-md">
         <div>
             <CardHeader className="pb-3 border-b dark:border-neutral-700/70">
                 <Skeleton className="h-6 w-3/4" /> {/* Title */}
@@ -29,7 +29,7 @@ const EventCardSkeleton = () => (
         <CardFooter className="pt-3 pb-4 mt-auto">
             <Skeleton className="h-9 w-full" /> {/* Button Skeleton */}
         </CardFooter>
-    </Card>
+    </HoverEffectCard>
 );
 
 

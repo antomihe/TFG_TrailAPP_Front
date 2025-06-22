@@ -44,7 +44,7 @@ export const useFetchNationalJuryEventsData = () => {
                     location: event.location,
                     province: event.province,
                     validated: event.validated,
-                    federation: event.federation,
+                    federation: event.federationId
                 }))
                 : [];
 
