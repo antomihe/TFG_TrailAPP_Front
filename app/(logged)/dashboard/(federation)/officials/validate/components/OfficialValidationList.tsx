@@ -230,7 +230,7 @@ export default function OfficialValidationList() {
     );
 
     return (
-        <div className="container mx-auto px-2 sm:px-0 py-8 space-y-10">
+        <div className="container mx-auto px-2 sm:px-0 py-8 space-y-2">
             {error && officials && officials.length > 0 && (
                 <Alert variant="destructive" className="mb-6">
                     <ServerCrash className="h-4 w-4" />
@@ -264,7 +264,7 @@ export default function OfficialValidationList() {
             </section>
 
             {officialsValidated.length > 0 && (
-                <section className="mt-12">
+                <section className="mt-4">
                     <div className="flex items-center mb-4 px-2 sm:px-0">
                         <UserCheck size={22} className="mr-3 text-green-500" />
                         <H3 className="text-xl font-semibold text-foreground">
@@ -273,16 +273,6 @@ export default function OfficialValidationList() {
                     </div>
                     {renderOfficialList(officialsValidated, false)}
                 </section>
-            )}
-
-            {officials.length === 0 && !isLoading && !error && (
-                <div className="px-2 sm:px-0">
-                    <CenteredMessage
-                        icon={<ClipboardList size={48} />}
-                        title="Sin Jueces"
-                        message="No hay jueces registrados para tu federación en este momento."
-                    />
-                </div>
             )}
         </div>
     );

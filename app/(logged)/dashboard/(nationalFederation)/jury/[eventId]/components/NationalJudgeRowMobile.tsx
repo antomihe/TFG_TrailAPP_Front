@@ -1,10 +1,11 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJudgeRowMobile.tsx
 import { cn } from "@/lib/utils";
 import { Field } from "formik";
 import { FileTextIcon, SettingsIcon, UserIcon } from "lucide-react";
-import { Input } from "postcss";
 import { NationalJudgeRowProps } from "./NationalJuryForm";
 import { NationalJudgeNamePopover } from "./NationalJudgeNamePopover";
 import { NationalJudgeActions } from "./NationalJudgeActions";
+import { Input } from "@/components/ui";
 
 export const NationalJudgeRowMobile: React.FC<NationalJudgeRowProps> = ({
     judge, index, values, errors, touched, setFieldValue, openPopovers, setOpenPopovers, selectedOfficialUserIds, officials

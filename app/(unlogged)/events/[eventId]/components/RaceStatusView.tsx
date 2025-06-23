@@ -1,3 +1,4 @@
+// app\(unlogged)\events\[eventId]\components\RaceStatusView.tsx
 // app/(unlogged)/events/[eventId]/components/RaceStatusView.tsx
 'use client';
 
@@ -67,7 +68,7 @@ export default function RaceStatusView() {
     }
 
     return (
-        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 md:pt-4 space-y-6">
             <RaceStatusHeader
                 onFilterChange={handleFilterChange}
                 isConnected={isConnected}

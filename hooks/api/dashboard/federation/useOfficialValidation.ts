@@ -43,7 +43,7 @@ export const useOfficialValidation = () => {
             const officialsData: Official[] = Array.isArray(res.data)
                 ? res.data.map((official: OfficialResponseDto) => ({
                     ...official,
-                    displayName: official.displayName || 'N/A',
+                    displayName: official.fullName || 'N/A',
                     validatedByFederation: !!official.validatedByFederation,
                     validatedAt: null, 
                   }))
@@ -79,7 +79,7 @@ export const useOfficialValidation = () => {
                         : official
                 ).filter(official => official.id !== officialId) 
             );
-            toast.success(`Juez "${officialToValidate?.displayName || officialId}" validado correctamente.`);
+            toast.success(`Juez "${officialToValidate?.fullName || officialId}" validado correctamente.`);
             success = true;
         } catch (err) {
             const errorMessage = errorHandler(err);
@@ -104,7 +104,7 @@ export const useOfficialValidation = () => {
             setOfficials((prevOfficials) =>
                 prevOfficials.filter((official) => official.id !== officialId)
             );
-            toast.success(`Juez "${officialToDelete?.displayName || officialId}" eliminado correctamente.`);
+            toast.success(`Juez "${officialToDelete?.fullName || officialId}" eliminado correctamente.`);
             success = true;
         } catch (err) {
             const errorMessage = errorHandler(err);

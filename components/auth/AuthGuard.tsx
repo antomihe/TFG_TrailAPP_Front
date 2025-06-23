@@ -1,3 +1,4 @@
+// components\auth\AuthGuard.tsx
 // components/auth/AuthGuard.tsx
 'use client';
 
@@ -24,12 +25,6 @@ export default function AuthGuard({ children, roles }: AuthGuardProps) {
         }
 
         if (!isAuthenticated) {
-            if (pathname !== '/login' && !pathname.startsWith('/login?')) {
-                 toast.error("Sesión Requerida", {
-                    description: "Por favor, inicia sesión para acceder a esta página.",
-                    duration: 5000,
-                });
-            }
             router.replace(`/login?to=${encodeURIComponent(pathname)}`);
             return;
         }

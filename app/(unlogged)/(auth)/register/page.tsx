@@ -1,19 +1,20 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+// app\(unlogged)\(auth)\register\page.tsx
+// app/(unlogged)/(auth)/register/page.tsx
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import OfficialForm from "./components/OfficialRegistrationForm"
 import AthleteForm from "./components/AthleteRegistrationForm"
 
-
 export default function RegisterPage() {
   return (
-    <div className="flex justify-center">
-      <Tabs defaultValue="athlete" className="w-[400px]">
+    <div className="flex justify-center items-start md:items-center">
+      <Tabs defaultValue="athlete" className="w-[20rem] md:w-[28rem]">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="athlete">Atleta</TabsTrigger>
-          <TabsTrigger value="official">Juez</TabsTrigger>
+          <TabsTrigger value="athlete" className="w-full">Atleta</TabsTrigger>
+          <TabsTrigger value="official" className="w-full">Juez</TabsTrigger>
         </TabsList>
         <TabsContent value="official">
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle>Juez</CardTitle>
               <CardDescription>
@@ -23,23 +24,19 @@ export default function RegisterPage() {
             <CardContent>
               <OfficialForm />
             </CardContent>
-            <CardFooter>
-            </CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="athlete">
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle>Atleta</CardTitle>
               <CardDescription>
                 Auto-registo a la plataforma.
               </CardDescription>
             </CardHeader>
-              <CardContent>
-                <AthleteForm />
-              </CardContent>
-            <CardFooter>
-            </CardFooter>
+            <CardContent>
+              <AthleteForm />
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJuryForm.tsx
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -16,7 +17,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
     Alert,
     AlertDescription,

@@ -1,3 +1,4 @@
+// app\(unlogged)\events\[eventId]\components\RaceStatusHeader.tsx
 // app/(unlogged)/events/[eventId]/components/RaceStatusHeader.tsx
 'use client';
 
@@ -20,7 +21,6 @@ export const RaceStatusHeader: React.FC<RaceStatusHeaderProps> = ({
   filterValue,
 }) => {
   return (
-    // CAMBIO: Padding ajustado para mejor visualización
     <div className="p-4 md:p-5 rounded-lg border bg-card dark:border-neutral-800 dark:bg-neutral-900/50 shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="relative w-full sm:max-w-xs md:max-w-sm">

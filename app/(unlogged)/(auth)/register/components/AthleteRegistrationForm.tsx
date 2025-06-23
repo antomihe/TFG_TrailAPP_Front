@@ -23,7 +23,7 @@ export default function AthleteRegistrationForm() {
             validationSchema={validationSchema}
             onSubmit={handleRegisterAthlete}
         >
-            <Form className="space-y-4">
+            <Form className="w-full space-y-4">
                 <FormikField
                     name={ATHLETE_FIELD_NAMES.fullName}
                     label="Nombre completo"

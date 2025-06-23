@@ -1,10 +1,11 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJuryFormSkeleton.tsx
 import { Card, CardContent, CardFooter, CardHeader, Skeleton } from "@/components/ui";
 
 export const NationalJuryFormSkeleton: React.FC = () => {
     return (
         <>
             <Skeleton className="h-10 w-2/3 mb-4 sm:w-1/2" /> {/* Title */}
-                <Skeleton className="h-24 w-full mb-6" /> {/* Alert (can be taller) */}
+                <Skeleton className="h-24 w-full mb-6" /> {/* Alert*/}
                 <Card className="overflow-hidden">
                     <CardHeader>
                         <Skeleton className="h-8 w-1/3 mb-2" />

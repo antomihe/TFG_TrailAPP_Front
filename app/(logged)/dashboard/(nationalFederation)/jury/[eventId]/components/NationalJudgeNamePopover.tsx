@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJudgeNamePopover.tsx
 import { Button, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, Popover, PopoverContent, PopoverTrigger } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { Command } from "cmdk";

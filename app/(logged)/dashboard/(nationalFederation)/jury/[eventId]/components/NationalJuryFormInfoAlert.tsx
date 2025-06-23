@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJuryFormInfoAlert.tsx
 import { Alert, AlertTitle, AlertDescription, Button, Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon, EyeIcon, EyeOffIcon, InfoIcon, XIcon } from "lucide-react";

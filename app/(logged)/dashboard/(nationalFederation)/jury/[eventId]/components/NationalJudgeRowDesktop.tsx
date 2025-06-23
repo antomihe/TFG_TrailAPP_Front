@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJudgeRowDesktop.tsx
 import { Input, TableCell, TableRow } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { NationalJudgeRowProps } from "./NationalJuryForm";

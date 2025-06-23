@@ -1,3 +1,4 @@
+// app\(logged)\dashboard\(nationalFederation)\jury\[eventId]\components\NationalJudgeActions.tsx
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { EyeIcon, EyeOffIcon, RotateCcwIcon, XIcon } from "lucide-react";
