@@ -3,55 +3,36 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/auth/useAuth'; 
-import { RolesEnum } from '@/lib/auth-types'; 
+import { useAuth } from '@/hooks/auth/useAuth';
+import type { RolesEnum } from '@/lib/auth-types'; 
 
 const defaultRedirectPath = (role: RolesEnum | undefined | null): string => {
-  switch (role) {
-    case RolesEnum.NATIONALFEDERATION:
-      return '/dashboard';
-    case RolesEnum.FEDERATION:
-      return '/dashboard';
-    case RolesEnum.ORGANIZER:
-      return '/dashboard';
-    case RolesEnum.ATHLETE:
-      return '/dashboard'; 
-    case RolesEnum.OFFICIAL:
-      return '/dashboard';
-    default:
-      return '/dashboard'; 
-  }
+  return '/dashboard';
 };
 
-type UsePublicRedirectOutput = {
-  shouldRedirect: boolean;
-  loading: boolean;
-};
-
-function usePublicRedirect(redirectTo?: string): UsePublicRedirectOutput {
+export function usePublicRedirect(redirectTo?: string): { isAuthResolved: boolean; shouldAttemptRedirect: boolean } {
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
   const router = useRouter();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isAuthResolved, setIsAuthResolved] = useState(false);
+  const [shouldAttemptRedirect, setShouldAttemptRedirect] = useState(false);
 
   useEffect(() => {
     if (isAuthLoading) {
-      setLoading(false);
+      setIsAuthResolved(false); 
+      setShouldAttemptRedirect(false); 
       return;
     }
 
-    setLoading(true); 
+    setIsAuthResolved(true);
+
     if (isAuthenticated) {
-      setShouldRedirect(true);
+      setShouldAttemptRedirect(true);
       const path = redirectTo || defaultRedirectPath(user?.role);
-      router.replace(path);
+      router.replace(path); 
     } else {
-      setShouldRedirect(false);
+      setShouldAttemptRedirect(false);
     }
-    setLoading(false);
   }, [isAuthenticated, isAuthLoading, user, router, redirectTo]);
 
-  return { shouldRedirect, loading };
+  return { isAuthResolved, shouldAttemptRedirect };
 }
-
-export default usePublicRedirect;

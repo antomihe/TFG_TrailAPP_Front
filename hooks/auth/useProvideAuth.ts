@@ -1,4 +1,5 @@
 // hooks\auth\useProvideAuth.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { User, AuthData } from '@/lib/auth-types';
 import {
@@ -15,18 +16,21 @@ import type { TokenValidResponseDto } from '@/types/api';
 export const useProvideAuth = () => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const router = useRouter();
 
     const clearSessionInternal = useCallback(async () => {
         setUser(null);
         setToken(null);
+        if (apiClient().defaults.headers.common['Authorization']) {
+            delete apiClient().defaults.headers.common['Authorization'];
+        }
         await clearAuthCookiesAction();
     }, []);
 
     useEffect(() => {
         const rehydrate = async () => {
-            setIsLoading(true);
             const authDataFromCookies = await getAuthDataFromCookies();
 
             if (authDataFromCookies) {
@@ -34,35 +38,38 @@ export const useProvideAuth = () => {
                 try {
                     const api = apiClient(access_token);
                     const response = await api.post<TokenValidResponseDto>(`/auth/token-validation`);
+
                     if (response.data?.userId === cookieUser.id) {
                         setUser(cookieUser);
                         setToken(access_token);
+                        apiClient().defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
                     } else {
                         await clearSessionInternal();
                     }
                 } catch (error) {
-                    console.warn("Token validation failed:", error);
                     await clearSessionInternal();
                 }
-            } else {
-                await clearSessionInternal();
             }
             setIsLoading(false);
         };
-        rehydrate();
-    }, [clearSessionInternal]);
+        if (!isLoggingOut) { 
+            rehydrate();
+        } else {
+            setIsLoading(false); 
+        }
+    }, [clearSessionInternal, isLoggingOut]); 
 
     const login = useCallback(async (authDataToSet: AuthData, redirectTo: string = '/dashboard') => {
         setIsLoading(true);
         try {
             setUser(authDataToSet.user);
             setToken(authDataToSet.access_token);
+            apiClient().defaults.headers.common['Authorization'] = `Bearer ${authDataToSet.access_token}`;
             await setAuthDataCookiesAction(authDataToSet);
-            toast.success('Inicio de sesión exitoso!');
             router.push(redirectTo);
         } catch (error: any) {
-            console.error('Error processing login data in useProvideAuth:', error);
-            toast.error('Error al procesar los datos de sesión.');
+            const errorMessage = error?.response?.data?.message || error?.message || 'Error al procesar los datos de sesión.';
+            toast.error('Error de Inicio de Sesión', { description: errorMessage });
             await clearSessionInternal();
         } finally {
             setIsLoading(false);
@@ -71,10 +78,13 @@ export const useProvideAuth = () => {
 
     const logout = useCallback(async () => {
         setIsLoading(true);
+        setIsLoggingOut(true);
         await clearSessionInternal();
-        toast.info('Sesión cerrada.');
         router.push('/');
-        setIsLoading(false);
+        Promise.resolve().then(() => {
+            setIsLoading(false);
+            setIsLoggingOut(false);
+        });
     }, [router, clearSessionInternal]);
 
     const updateUserInContext = useCallback(async (updatedUserInfo: Partial<User>) => {
@@ -89,7 +99,7 @@ export const useProvideAuth = () => {
     return {
         user,
         token,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!token,
         isLoading,
         login,
         logout,
