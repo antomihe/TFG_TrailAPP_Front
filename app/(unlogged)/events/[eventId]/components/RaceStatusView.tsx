@@ -1,4 +1,5 @@
 // app\(unlogged)\events\[eventId]\components\RaceStatusView.tsx
+// app/(unlogged)/events/[eventId]/components/RaceStatusView.tsx
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -11,14 +12,10 @@ import EnrollmentList from './EnrollmentList';
 import { CenteredMessage } from '@/components/ui/centered-message';
 
 const SkeletonLoader = () => (
-    <div className="w-full px-2 sm:px-3">
-        <div className="max-w-6xl mx-auto p-3 sm:p-8 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                <Skeleton className="h-11 w-full md:w-2/5 lg:w-1/3" />
-                <Skeleton className="h-8 w-32" />
-            </div>
-            <Skeleton className="h-96 w-full" />
-        </div>
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <Skeleton className="h-12 w-full md:w-2/5 lg:w-1/3" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-96 w-full" />
     </div>
 );
 
@@ -58,32 +55,28 @@ export default function RaceStatusView() {
         return (
             <CenteredMessage
                 icon={<ServerCrash size={48} />}
-                title="Error al Cargar Eventos"
+                title="Error al Cargar Datos"
                 variant="destructive"
-                message={<>{initialDataError} <br /> <strong>No se pudieron obtener los eventos.</strong></>}
+                message={<>{initialDataError} <br /> <strong>No se pudo obtener el estado de la carrera.</strong></>}
                 action={refetchInitialEnrollments && (
                     <Button onClick={refetchInitialEnrollments} variant="destructive">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Reintentar
                     </Button>
                 )}
             />
-
         );
     }
 
-
     return (
-        <div className="w-full px-2 sm:px-3">
-            <div className="max-w-6xl mx-auto p-3 sm:p-8 ">
-                <RaceStatusHeader
-                    onFilterChange={handleFilterChange}
-                    isConnected={isConnected}
-                    socketError={socketError}
-                    filterValue={filterTerm}
-                />
-                <div className="w-full">
-                    <EnrollmentList enrollments={filteredEnrollments} />
-                </div>
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 md:pt-4 space-y-6">
+            <RaceStatusHeader
+                onFilterChange={handleFilterChange}
+                isConnected={isConnected}
+                socketError={socketError}
+                filterValue={filterTerm}
+            />
+            <div className="w-full">
+                <EnrollmentList enrollments={filteredEnrollments} />
             </div>
         </div>
     );

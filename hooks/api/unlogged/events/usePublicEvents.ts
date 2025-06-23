@@ -2,9 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import api, { errorHandler } from '@/config/api';
 import { getPageSize } from '@/utils/getPageSize';
-import type { EventWithCoordinatesDto, EventPaginatedEventWithCoordinatesResponseDto } from '@/types/api';
+import type { EventPaginatedResponseDto, EventResponseDto } from '@/types/api';
 
-export type PublicEvent = EventWithCoordinatesDto;
+export type PublicEvent = EventResponseDto;
 
 export const usePublicEvents = () => {
     const [events, setEvents] = useState<PublicEvent[]>([]);
@@ -19,7 +19,7 @@ export const usePublicEvents = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api().get<EventPaginatedEventWithCoordinatesResponseDto>('/events', {
+            const response = await api().get<EventPaginatedResponseDto>('/events', {
                 timeout: 15000,
                 params: {
                     pageSize: itemsPerPage,
@@ -27,7 +27,7 @@ export const usePublicEvents = () => {
                 },
             });
 
-            setEvents(Array.isArray(response.data.data) ? response.data.data : []);
+            setEvents(Array.isArray(response.data.event) ? response.data.event : []);
             setTotalEvents(response.data.total || 0);
         } catch (err) {
             const errorMessage = errorHandler(err);

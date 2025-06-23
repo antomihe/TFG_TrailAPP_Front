@@ -158,9 +158,6 @@ export default function EventsManagerList() {
     if (error && (!events || events.length === 0)) {
         return (
             <div className="container mx-auto px-1 sm:px-2 py-8">
-                <H2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-primary dark:text-primary-foreground">
-                    Gestión de Eventos
-                </H2>
                 <CenteredMessage
                     icon={<ServerCrash size={48} />}
                     title="Error al Cargar Eventos"

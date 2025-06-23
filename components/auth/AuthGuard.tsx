@@ -1,4 +1,5 @@
 // components\auth\AuthGuard.tsx
+// components/auth/AuthGuard.tsx
 'use client';
 
 import { ReactNode, useEffect } from 'react';
@@ -19,20 +20,24 @@ export default function AuthGuard({ children, roles }: AuthGuardProps) {
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
-            toast.error('Acceso denegado. Por favor, inicia sesión.');
+        if (isLoading) {
+            return;
+        }
+
+        if (!isAuthenticated) {
             router.replace(`/login?to=${encodeURIComponent(pathname)}`);
-        } else if (
-            !isLoading &&
-            isAuthenticated &&
-            roles &&
-            user &&
-            !roles.includes(user.role as RolesEnum)
-        ) {
-            toast.error('No tienes permiso para acceder a esta página.');
+            return;
+        }
+
+        if (roles && user && !roles.includes(user.role as RolesEnum)) {
+            toast.error('Acceso Denegado', {
+                description: 'No tienes los permisos necesarios para acceder a esta página.',
+                duration: 5000
+            });
             router.replace('/unauthorized');
         }
-    }, [isAuthenticated, isLoading, router, pathname, user, roles]);
+
+    }, [isAuthenticated, isLoading, user, roles, router, pathname]);
 
     if (isLoading) {
         return <Loading />;

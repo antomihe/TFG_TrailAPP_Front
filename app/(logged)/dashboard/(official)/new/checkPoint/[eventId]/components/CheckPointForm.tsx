@@ -13,11 +13,11 @@ import { CheckPointInput } from './CheckPointInput';
 import {
   useEventCheckPointsManager
 } from '@/hooks/api/dashboard/official/useEventCheckPointsManager';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui';
+import { HoverEffectCard, CardContent, CardFooter, CardHeader } from '@/components/ui';
 
 
 const InputFormSkeleton = () => (
-  <Card className="shadow-lg dark:border-neutral-800">
+  <HoverEffectCard className="shadow-lg dark:border-neutral-800">
     <CardHeader>
       <Skeleton className="h-7 w-3/5" /> {/* CardTitle */}
       <Skeleton className="h-4 w-4/5 mt-1" /> {/* CardDescription */}
@@ -33,12 +33,12 @@ const InputFormSkeleton = () => (
     <CardFooter>
       <Skeleton className="h-12 w-full" /> {/* Button */}
     </CardFooter>
-  </Card>
+  </HoverEffectCard>
 );
 
 
 const AddedCardSkeleton = () => (
-  <Card className="border shadow-sm dark:border-neutral-800">
+  <HoverEffectCard className="border shadow-sm dark:border-neutral-800">
     <CardHeader className="pb-3">
       <div className="flex justify-between items-start gap-2">
         <Skeleton className="h-5 w-3/4" /> {/* Title */}
@@ -55,7 +55,7 @@ const AddedCardSkeleton = () => (
         </div>
       ))}
     </CardContent>
-  </Card>
+  </HoverEffectCard>
 );
 
 

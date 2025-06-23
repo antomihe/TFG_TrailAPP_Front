@@ -21,8 +21,7 @@ export const EventChatCard: React.FC<EventChatCardProps> = ({ event }) => {
 
   return (
     <Card
-      className="group flex flex-col justify-between h-full overflow-hidden rounded-lg border shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/50 dark:border-neutral-800 dark:hover:border-primary/70 bg-card"
-      
+      className="group flex flex-col justify-between h-full overflow-hidden rounded-lg border shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/50 dark:border-neutral-800 dark:hover:border-primary/70 bg-card" 
     >
       <div>
         <CardHeader className="pb-3 border-b dark:border-neutral-700/70 group-hover:bg-muted/30 dark:group-hover:bg-muted/10 transition-colors">

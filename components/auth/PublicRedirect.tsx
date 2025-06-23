@@ -2,28 +2,33 @@
 'use client';
 
 import React from 'react';
-import usePublicRedirect from '@/hooks/auth/usePublicRedirect'; 
-import { Loading } from '@/components/pages'; 
+import { usePublicRedirect } from '@/hooks/auth/usePublicRedirect';
+import { Loading } from '@/components/pages';
 
 interface PublicRedirectOptions {
-  redirectTo?: string; 
+  redirectTo?: string;
 }
 
-export function PublicRedirect<P extends object>( 
-  Component: React.ComponentType<P>,
+export function PublicRedirect<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
   options?: PublicRedirectOptions
 ) {
-  return function PublicComponent(props: P) { 
-    const { shouldRedirect, loading } = usePublicRedirect(options?.redirectTo);
+  function WithPublicRedirect(props: P) {
+    const { isAuthResolved, shouldAttemptRedirect } = usePublicRedirect(options?.redirectTo);
 
-    if (loading) {
+    if (!isAuthResolved) {
       return <Loading />;
     }
 
-    if (shouldRedirect) {
-      return null;
+    if (shouldAttemptRedirect) {
+      return <Loading />; 
     }
 
-    return <Component {...props} />;
-  };
+    return <WrappedComponent {...props} />;
+  }
+
+  const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
+  WithPublicRedirect.displayName = `PublicRedirect(${displayName})`;
+
+  return WithPublicRedirect;
 }

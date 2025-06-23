@@ -29,8 +29,6 @@ export default function NewEventForm() {
             >
                 {({ values }) => (
                     <Form className="space-y-4">
-                        <h2 className="text-xl font-semibold text-center mb-6">Crear Nuevo Evento</h2>
-
                         <FormikField
                             name={FIELD_NAMES.name}
                             label="Nombre del Evento"

@@ -7,7 +7,7 @@ import { ChatList } from "./components/ChatList";
 export default function DashboardPage() {
     return (
         <>
-            <Head title="Chat" subtitle="Listados de chats"/>
+            <Head title="Chat" subtitle="Chats de Eventos"/>
 
             <ChatList />
         </>

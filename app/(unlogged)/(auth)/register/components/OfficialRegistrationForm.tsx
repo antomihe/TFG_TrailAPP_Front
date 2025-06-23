@@ -8,15 +8,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FormikField, FormikButton, Button } from '@/components/ui';
 import {
-    useOfficialRegistration,
-    OFFICIAL_FIELD_NAMES,
-    OfficialRegistrationFormValues,
+useOfficialRegistration,
+OFFICIAL_FIELD_NAMES,
+OfficialRegistrationFormValues,
 } from '@/hooks/api/unlogged/auth/useOfficialRegistration';
 
 import { FederationSelectField } from './FederationSelectField';
 
 const FormSkeletonLoader = () => (
-    <div className="max-w-xl mx-auto p-4 space-y-5">
+    <div className="space-y-5"> 
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
@@ -36,41 +36,40 @@ export default function OfficialRegistrationForm() {
         refetchFederations,
     } = useOfficialRegistration();
 
-
     if (loadingFederations) {
         return <FormSkeletonLoader />;
     }
 
     if (errorLoadingFederations && federations.length === 0) {
         return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                        {errorLoadingFederations}
-                        <Button onClick={refetchFederations} variant="outline" size="sm" className="mt-2">
-                            Reintentar carga
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            </div>
+            <Alert variant="destructive" className="w-full"> 
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                    {errorLoadingFederations}
+                    <Button
+                        onClick={refetchFederations}
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 block w-full sm:w-auto" 
+                    >
+                        Reintentar carga
+                    </Button>
+                </AlertDescription>
+            </Alert>
         );
     }
 
     if (federations.length === 0 && !loadingFederations && !errorLoadingFederations) {
         return (
-            <div className="flex items-center justify-center max-w-xl mx-auto p-4">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                        No hay federaciones disponibles para seleccionar o no se pudieron cargar.
-                        Por favor, contacta con el administrador.
-                    </AlertDescription>
-                </Alert>
-            </div>
+            <Alert variant="destructive" className="w-full"> 
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                    No hay federaciones disponibles para seleccionar o no se pudieron cargar.
+                    Por favor, contacta con el administrador.
+                </AlertDescription>
+            </Alert>
         );
     }
-
 
     return (
         <Formik<OfficialRegistrationFormValues>
@@ -100,9 +99,10 @@ export default function OfficialRegistrationForm() {
                     placeholder="AV3"
                     onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
                         e.target.value = e.target.value.toUpperCase();
+                        e.target.value = e.target.value.replace(/[^A-Z0-9]/g, '');
+                        e.target.value = e.target.value.slice(0, 4);
                     }}
                     autoComplete="off"
-                    maxLength={4}
                 />
 
                 <FederationSelectField
@@ -114,7 +114,7 @@ export default function OfficialRegistrationForm() {
                 />
 
                 {errorLoadingFederations && federations.length > 0 && (
-                    <Alert variant={'destructive'} className="mt-2">
+                    <Alert variant={'destructive'} className="mt-2 w-full"> 
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription>
                             Hubo un problema al actualizar la lista de federaciones, pero puedes continuar con las existentes.
@@ -122,7 +122,6 @@ export default function OfficialRegistrationForm() {
                         </AlertDescription>
                     </Alert>
                 )}
-
 
                 <FormikButton
                     type="submit"

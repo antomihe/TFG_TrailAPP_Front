@@ -65,11 +65,11 @@ export const useOfficialProfile = () => {
                 }
             }
 
-            const completeProfileData: OfficialProfileData = { ...officialData, federationName };
+            const completeProfileData: OfficialProfileData = { ...officialData, federationName, fullName: officialData.fullName };
             setProfileData(completeProfileData);
             setInitialFormValues({
                 email: completeProfileData.email || '',
-                fullName: completeProfileData.displayName || '',
+                fullName: completeProfileData.fullName || '',
             });
 
         } catch (err) {
@@ -107,7 +107,7 @@ export const useOfficialProfile = () => {
                 const updatedProfileData: OfficialProfileData = {
                     ...profileData,
                     email: values.email,
-                    displayName: values.fullName,
+                    fullName: values.fullName,
                 };
                 setProfileData(updatedProfileData);
                 setInitialFormValues(values);

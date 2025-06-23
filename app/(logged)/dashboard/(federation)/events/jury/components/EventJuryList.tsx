@@ -27,58 +27,58 @@ import { useFetchJuryEvents, JuryEvent } from '@/hooks/api/dashboard/federation/
 import { EventJuryTableControls } from './EventJuryTableControls';
 import { getJuryEventTableColumns } from './JuryEventTableColumns';
 
-const PAGE_SIZE = 4; 
+const PAGE_SIZE = 4;
 
 interface CenteredMessageProps {
-  icon?: React.ReactNode;
-  title: string;
-  message: React.ReactNode;
-  action?: React.ReactNode;
-  variant?: "default" | "destructive" | "warning";
+    icon?: React.ReactNode;
+    title: string;
+    message: React.ReactNode;
+    action?: React.ReactNode;
+    variant?: "default" | "destructive" | "warning";
 }
 
 const CenteredMessage: React.FC<CenteredMessageProps> = ({ icon, title, message, action, variant = "default" }) => {
-  let alertClasses = "dark:bg-neutral-800/30";
-  let iconClasses = "text-primary";
-  if (variant === "destructive") {
-    alertClasses = "border-destructive/50 text-destructive dark:border-destructive/30";
-    iconClasses = "text-destructive";
-  } else if (variant === "warning") {
-    alertClasses = "border-yellow-500/50 text-yellow-700 dark:text-yellow-500 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/10";
-    iconClasses = "text-yellow-600 dark:text-yellow-400";
-  }
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center min-h-[400px]">
-      <Alert className={`max-w-lg w-full ${alertClasses}`}>
-        {icon && <div className={`mb-4 flex justify-center ${iconClasses}`}>{icon}</div>}
-        <AlertTitle className={`text-xl font-semibold ${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : ''}`}>{title}</AlertTitle>
-        <AlertDescription className={`${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-600 dark:text-yellow-500' : ''} mt-2`}>
-          {message}
-        </AlertDescription>
-        {action && <div className="mt-6">{action}</div>}
-      </Alert>
-    </div>
-  );
+    let alertClasses = "dark:bg-neutral-800/30";
+    let iconClasses = "text-primary";
+    if (variant === "destructive") {
+        alertClasses = "border-destructive/50 text-destructive dark:border-destructive/30";
+        iconClasses = "text-destructive";
+    } else if (variant === "warning") {
+        alertClasses = "border-yellow-500/50 text-yellow-700 dark:text-yellow-500 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/10";
+        iconClasses = "text-yellow-600 dark:text-yellow-400";
+    }
+    return (
+        <div className="flex flex-col items-center justify-center py-12 text-center min-h-[400px]">
+            <Alert className={`max-w-lg w-full ${alertClasses}`}>
+                {icon && <div className={`mb-4 flex justify-center ${iconClasses}`}>{icon}</div>}
+                <AlertTitle className={`text-xl font-semibold ${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : ''}`}>{title}</AlertTitle>
+                <AlertDescription className={`${variant === 'destructive' ? '!text-destructive' : ''} ${variant === 'warning' ? 'text-yellow-600 dark:text-yellow-500' : ''} mt-2`}>
+                    {message}
+                </AlertDescription>
+                {action && <div className="mt-6">{action}</div>}
+            </Alert>
+        </div>
+    );
 };
 
 
 const IconTableHead: React.FC<{ icon?: React.ReactNode; className?: string; children: React.ReactNode }> = ({ icon, className, children }) => (
-  <TableHead className={`py-2.5 whitespace-nowrap group ${className}`}>
-    {children} 
-  </TableHead>
+    <TableHead className={`py-2.5 whitespace-nowrap group ${className}`}>
+        {children}
+    </TableHead>
 );
 
-const ListSkeletonLoader = ({ rowCount = PAGE_SIZE, columnCount = 3 }: { rowCount?: number, columnCount?: number }) => ( 
+const ListSkeletonLoader = ({ rowCount = PAGE_SIZE, columnCount = 3 }: { rowCount?: number, columnCount?: number }) => (
     <div className="container mx-auto px-1 sm:px-2 py-8">
         <div className="text-center mb-8"> <Skeleton className="h-8 w-3/5 mx-auto mb-2" /> <Skeleton className="h-4 w-2/5 mx-auto" /> </div>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-4 px-1"> <Skeleton className="h-10 w-full sm:w-1/3" /> <Skeleton className="h-10 w-full sm:w-auto sm:min-w-[120px]" /> </div>
         <div className="border rounded-lg dark:border-neutral-800 overflow-hidden">
             <Table className="min-w-full">
                 <TableHeader> <TableRow> {Array.from({ length: columnCount }).map((_, i) => (<TableHead key={i} className="px-1 sm:px-2"><Skeleton className="h-4 w-full" /></TableHead>))} </TableRow> </TableHeader>
-                <TableBody> {Array.from({ length: rowCount }).map((_, index) => ( <TableRow key={index}> {Array.from({ length: columnCount }).map((_, j) => (<TableCell key={j} className="px-1 sm:px-2 py-2.5"><Skeleton className="h-4 w-full" /></TableCell>))} </TableRow> ))} </TableBody>
+                <TableBody> {Array.from({ length: rowCount }).map((_, index) => (<TableRow key={index}> {Array.from({ length: columnCount }).map((_, j) => (<TableCell key={j} className="px-1 sm:px-2 py-2.5"><Skeleton className="h-4 w-full" /></TableCell>))} </TableRow>))} </TableBody>
             </Table>
         </div>
-         <div className="flex items-center justify-between py-4 mt-4"> <Skeleton className="h-8 w-1/3" /> <div className="flex space-x-2"> <Skeleton className="h-8 w-12 sm:w-16" /> <Skeleton className="h-8 w-12 sm:w-16" /> </div> </div>
+        <div className="flex items-center justify-between py-4 mt-4"> <Skeleton className="h-8 w-1/3" /> <div className="flex space-x-2"> <Skeleton className="h-8 w-12 sm:w-16" /> <Skeleton className="h-8 w-12 sm:w-16" /> </div> </div>
     </div>
 );
 
@@ -90,9 +90,9 @@ export default function EventsJuryList() {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-      date: true, 
-      location: true,
-      province: true,
+        date: true,
+        location: true,
+        province: true,
     });
     const [currentPage, setCurrentPage] = useState(0);
 
@@ -126,46 +126,43 @@ export default function EventsJuryList() {
     };
 
     if (loading && (!events || events.length === 0)) {
-        
+
         const visibleColumnCount = columns.filter(col => {
             const meta = col.meta as any;
             if (meta?.headerClassName?.includes('hidden sm:flex') || meta?.headerClassName?.includes('hidden md:flex') || meta?.headerClassName?.includes('hidden lg:flex')) {
-                 
-                return false; 
+
+                return false;
             }
             return columnVisibility[col.id as string] !== false && col.enableHiding !== false;
-        }).length || 3; 
+        }).length || 3;
         return <ListSkeletonLoader columnCount={visibleColumnCount} />;
     }
 
     if (error && (!events || events.length === 0)) {
         return (
             <div className="container mx-auto px-1 sm:px-2 py-8">
-              <H2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-primary dark:text-primary-foreground">
-                Asignación de Jurado
-              </H2>
-              <CenteredMessage
-                icon={<ServerCrash size={48} />}
-                title="Error al Cargar Eventos"
-                variant="destructive"
-                message={<>{error} <br/> No se pudo obtener la lista de eventos validados.</>}
-                action={ refetchEvents && (
-                  <UiButton onClick={refetchEvents} variant="destructive">
-                    <AlertTriangle className="mr-2 h-4 w-4" /> Reintentar
-                  </UiButton>
-                )}
-              />
+                <CenteredMessage
+                    icon={<ServerCrash size={48} />}
+                    title="Error al Cargar Eventos"
+                    variant="destructive"
+                    message={<>{error} <br /> No se pudo obtener la lista de eventos validados.</>}
+                    action={refetchEvents && (
+                        <UiButton onClick={refetchEvents} variant="destructive">
+                            <AlertTriangle className="mr-2 h-4 w-4" /> Reintentar
+                        </UiButton>
+                    )}
+                />
             </div>
         );
     }
 
     return (
         <div className="container mx-auto px-1 sm:px-2 py-6 space-y-6">
-        
+
             <EventJuryTableControls table={table} />
 
             {error && events && events.length > 0 && (
-                 <Alert variant="destructive" className="mx-1 sm:mx-0">
+                <Alert variant="destructive" className="mx-1 sm:mx-0">
                     <ServerCrash className="h-4 w-4" />
                     <AlertTitle>Error de Actualización</AlertTitle>
                     <AlertDescription>
@@ -184,7 +181,7 @@ export default function EventsJuryList() {
                     />
                 </div>
             ) : table.getRowModel().rows.length === 0 ? (
-                 <div className="px-1 sm:px-0">
+                <div className="px-1 sm:px-0">
                     <CenteredMessage
                         icon={<ListX size={48} />}
                         title="Sin Resultados"
@@ -199,7 +196,7 @@ export default function EventsJuryList() {
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map(header => (
-                                            
+
                                             <IconTableHead key={header.id} className={(header.column.columnDef.meta as any)?.headerClassName}>
                                                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                             </IconTableHead>
@@ -232,10 +229,10 @@ export default function EventsJuryList() {
                     handlePageChange={handlePageChange}
                 />
             )}
-             {table.getRowCount() > 0 && (
-                 <div className='flex justify-center items-center mt-4'>
+            {table.getRowCount() > 0 && (
+                <div className='flex justify-center items-center mt-4'>
                     <Small className='text-muted-foreground'>Mostrando {table.getRowModel().rows.length} de {table.getPrePaginationRowModel().rows.length} eventos (filtrados)</Small>
-                 </div>
+                </div>
             )}
         </div>
     );
