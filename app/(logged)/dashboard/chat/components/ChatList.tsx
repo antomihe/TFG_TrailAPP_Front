@@ -112,7 +112,6 @@ export function ChatList() {
     return (
         <div className="container mx-auto px-4 py-8">
             <H2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-primary dark:text-primary-foreground">
-                Chats de Eventos
                 {loading && <Loader2 className="ml-3 h-6 w-6 inline animate-spin text-muted-foreground" />}
             </H2>
 

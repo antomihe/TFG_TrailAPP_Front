@@ -133,10 +133,6 @@ export default function JuryForm() {
 
     return (
         <div className="max-w-4xl mx-auto py-6 sm:py-8 px-2 sm:px-6 lg:px-8"> 
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 px-2 sm:px-0">
-                Configuración del Jurado del Evento
-            </h1>
-
             {error && initialJudges.length > 0 && (
                 <Alert variant="destructive" className="mb-6 mx-2 sm:mx-0">
                     <AlertTitle>Advertencia</AlertTitle>

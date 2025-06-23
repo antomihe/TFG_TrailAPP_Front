@@ -50,7 +50,6 @@ export const MaterialChecklist: React.FC<MaterialChecklistProps> = ({
 
   return (
     <div className="space-y-6 border rounded-lg p-6 dark:border-gray-700">
-      <h2 className="font-semibold text-center text-lg">Control de Material</h2>
       <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
         {materials.map((item) => (
           <div key={item.id} className="flex items-center space-x-3">

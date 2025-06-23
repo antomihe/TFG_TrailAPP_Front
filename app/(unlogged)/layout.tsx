@@ -1,22 +1,17 @@
-import { ScrollArea } from '@/components/ui/scroll-area';
+// src/app/(unlogged)/layout.tsx
 import { Footer } from '@/components/layout/footer';
 import { Header } from '@/components/layout/header';
 
 export default function UnloggedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-screen w-screen flex flex-col mx-auto px-3 py-2">
-      <ScrollArea className="flex flex-col overflow-y-auto flex-grow w-full mx-auto px-8 md:px-16">
-        <div className="w-full">
-          <Header />
-
-          <main className="flex-grow flex items-center justify-center w-full min-h-[calc(100vh-160px)]">
-            {children}
-          </main>
-
-          <Footer />
+    <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden py-2">
+      <Header />
+      <main className="flex-1 flex flex-col">
+        <div className="container mx-auto flex-1 flex items-center justify-center w-full px-2 py-4 md:px-4 lg:px-6">
+          {children}
         </div>
-      </ScrollArea>
+      </main>
+      <Footer />
     </div>
   );
 }
-

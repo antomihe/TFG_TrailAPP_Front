@@ -1,73 +1,180 @@
-// app\(unlogged)\events\[eventId]\components\EnrollmentList.tsx
 'use client';
 
-import React from 'react';
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; 
-import { H3, P } from '@/components/ui/typography'; 
+import React, { useState } from 'react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { H3, P } from '@/components/ui/typography';
 import { Badge } from '@/components/ui/badge';
-import { FileSearch, Hash, User, Activity} from 'lucide-react'; 
-import { EnrollmentStatus } from '@/hooks/api/unlogged/events/useRaceStatus'; 
+import { Button } from '@/components/ui/button';
+import { FileSearch, Hash, User, Activity, CircleUserRound, ChevronLeft, ChevronRight } from 'lucide-react';
+import { EnrollmentStatus } from '@/hooks/api/unlogged/events/useRaceStatus';
 
 type Props = {
     enrollments: EnrollmentStatus[];
+    itemsPerPage?: number;
 }
 
+const DEFAULT_ITEMS_PER_PAGE = 3;
 
-const IconTableHead: React.FC<{ icon?: React.ReactNode; className?: string; children: React.ReactNode }> = ({ icon, className, children }) => (
-    <TableHead className={`py-2.5 px-1 sm:py-3 sm:px-2 md:px-3 whitespace-nowrap group ${className}`}>
-        <div className="flex items-center text-xs uppercase font-semibold text-muted-foreground tracking-wider">
-            {icon && <span className="mr-1 sm:mr-1.5 opacity-80 group-hover:text-primary transition-colors">{icon}</span>}
-            {children}
+const EnrollmentItem = ({ athlete }: { athlete: EnrollmentStatus }) => (
+    <div
+        className="block sm:table-row hover:bg-muted/50 dark:hover:bg-muted/20 transition-colors"
+        role="row"
+    >
+        <div className="hidden sm:table-cell sm:p-0 sm:w-[90px] align-middle" role="cell">
+            <div className="sm:flex h-full items-center justify-center p-3">
+                <Badge variant="secondary" className="font-mono text-xs sm:text-sm px-2 py-0.5">
+                    {athlete.dorsal || 'N/A'}
+                </Badge>
+            </div>
         </div>
-    </TableHead>
+
+        <div className="hidden sm:table-cell sm:px-3 sm:py-3 align-middle" role="cell">
+            <p className="text-sm font-medium text-foreground truncate">{athlete.athleteName}</p>
+        </div>
+
+        <div className="hidden sm:table-cell sm:px-3 sm:py-3 sm:w-[180px] align-middle" role="cell">
+            <div className="sm:text-center">
+                <p className="text-sm font-medium">{athlete.status}</p>
+            </div>
+        </div>
+
+        <div className="sm:hidden flex justify-between items-start w-full p-4">
+            <div className="flex flex-col gap-3 mr-2">
+                <div>
+                    <span className="flex items-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <CircleUserRound size={14} className="mr-2" aria-hidden="true" />
+                        Atleta
+                    </span>
+                    <p className="mt-1 text-sm font-medium text-foreground break-words">
+                        {athlete.athleteName}
+                    </p>
+                </div>
+                <div>
+                    <span className="flex items-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <Activity size={14} className="mr-2" aria-hidden="true" />
+                        Estado
+                    </span>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                        {athlete.status}
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex flex-col items-end text-right shrink-0">
+                <span className="text-lg font-bold text-primary">
+                    #{athlete.dorsal || 'N/A'}
+                </span>
+            </div>
+        </div>
+    </div>
 );
 
+export default function EnrollmentList({ enrollments, itemsPerPage = DEFAULT_ITEMS_PER_PAGE }: Props) {
+    const [currentPage, setCurrentPage] = useState(1);
 
-export default function EnrollmentList({ enrollments }: Props) {
-    if (enrollments.length === 0) {
+    if (!enrollments || enrollments.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center text-center py-16 text-muted-foreground min-h-[300px] border-2 border-dashed rounded-lg dark:border-neutral-700 bg-card dark:bg-neutral-900/30">
-                <FileSearch size={48} className="mb-4 text-primary/70" />
+            <div
+                className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card/50 p-8 text-center text-muted-foreground dark:border-neutral-700 dark:bg-neutral-900/30"
+                aria-live="polite"
+            >
+                <FileSearch size={48} className="mb-4 text-primary/70" aria-hidden="true" />
                 <H3 className="text-lg font-medium text-foreground">No se encontraron inscripciones</H3>
-                <P className="mt-1 text-sm">Prueba a modificar los filtros o espera a que se actualice el estado.</P>
+                <P className="mt-2 max-w-xs text-sm">
+                    Prueba a modificar los filtros o espera a que se actualice la información.
+                </P>
             </div>
         );
     }
 
+    const totalPages = Math.ceil(enrollments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedEnrollments = enrollments.slice(startIndex, endIndex);
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
     return (
-        <div className="border rounded-lg overflow-hidden dark:border-neutral-800 shadow-md bg-card">
-            <ScrollArea className="h-[calc(100vh-var(--header-height,280px)-12rem)] md:h-[calc(100vh-var(--header-height,300px)-14rem)] w-full">
-                <Table className="min-w-[320px] sm:min-w-full"> {/* Adjusted min-w for mobile */}
-                    <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 shadow-sm dark:shadow-none dark:bg-neutral-900/95">
-                        <TableRow>
-                            <IconTableHead icon={<Hash size={14} />} className="w-[70px] sm:w-[80px] text-center sm:text-left">Dorsal</IconTableHead>
-                            <IconTableHead icon={<User size={14} />} className="w-auto">Nombre</IconTableHead>
-                            <IconTableHead icon={<Activity size={14} />} className="w-[100px] sm:w-[120px] text-center">Estado</IconTableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {enrollments.map((athlete) => (
-                            <TableRow key={athlete.dorsal} className="hover:bg-muted/50 dark:hover:bg-muted/20 transition-colors">
-                                <TableCell className="py-2.5 px-1 sm:px-2 text-center">
-                                    <Badge variant="default" className="font-mono text-xs sm:text-sm px-2 py-0.5">
-                                        {athlete.dorsal}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="py-2.5 px-1 sm:px-2 font-medium text-foreground truncate text-xs sm:text-sm min-w-[150px]">
-                                    {athlete.athleteName}
-                                </TableCell>
-                                <TableCell className="py-2.5 px-1 sm:px-2 text-center">
-                                    {athlete.status}
-                                </TableCell>
-                            </TableRow>
+        <div className="overflow-hidden rounded-lg border bg-card shadow-md dark:border-neutral-800">
+            <ScrollArea className="w-full">
+                <div
+                    className="w-full sm:table sm:table-fixed"
+                    role="table"
+                    aria-label="Lista de Inscripciones"
+                >
+                    <div
+                        className="hidden sm:table-header-group sticky top-0 z-10 bg-background/95 backdrop-blur-sm"
+                        role="rowgroup"
+                    >
+                        <div className="shadow-sm sm:table-row dark:shadow-none" role="row">
+                            <div
+                                className="w-[90px] py-3 px-3 text-center sm:table-cell text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                                role="columnheader"
+                            >
+                               Dorsal
+                            </div>
+                            <div
+                                className="py-3 px-3 text-left sm:table-cell text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                                role="columnheader"
+                            >
+                                Nombre
+                            </div>
+                            <div
+                                className="w-[180px] py-3 px-3 text-center sm:table-cell text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                                role="columnheader"
+                            >
+                                Estado
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        className="divide-y divide-border sm:table-row-group sm:divide-y-0"
+                        role="rowgroup"
+                    >
+                        {paginatedEnrollments.map((athlete, index) => (
+                            <EnrollmentItem
+                                key={athlete.dorsal || `enrollment-${startIndex + index}`}
+                                athlete={athlete}
+                            />
                         ))}
-                    </TableBody>
-                </Table>
+                    </div>
+                </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 p-3 sm:p-4 border-t dark:border-neutral-700 bg-background/50">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1 text-xs sm:text-sm"
+                    >
+                        <ChevronLeft size={16} />
+                        Anterior
+                    </Button>
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-1 text-xs sm:text-sm"
+                    >
+                        Siguiente
+                        <ChevronRight size={16} />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

@@ -5,7 +5,7 @@ import JuryForm from "./components/JuryForm";
 export default function EventJuryPage() {
     return (
         <>
-            <Head title="Eventos" subtitle="Asignar jurado a evento" />
+            <Head title="Eventos" subtitle="Configuración del Jurado del Evento" />
 
             <JuryForm />
         </>

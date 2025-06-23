@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import {
     RotateCcwIcon,
-    UsersIcon,      
+    UsersIcon,
 } from "lucide-react";
 import {
     Table,
@@ -41,7 +41,7 @@ const validationSchema = Yup.object().shape({
         Yup.object().shape({
             name: Yup.string().when(['isNational', 'erase'], (values, schema) => {
                 const [isNational, erase] = values;
-                if (!isNational || erase) { 
+                if (!isNational || erase) {
                     return schema.notRequired();
                 }
                 return schema.required("El juez es obligatorio si es designación nacional y no está marcado para borrar/devolver.");
@@ -83,7 +83,7 @@ export default function NationalJuryEventForm() {
     } = useNationalJuryFormData();
 
     const [openPopovers, setOpenPopovers] = useState<boolean[]>([]);
-    const [isInfoAlertOpen, setIsInfoAlertOpen] = useState(true); 
+    const [isInfoAlertOpen, setIsInfoAlertOpen] = useState(true);
 
     useEffect(() => {
         if (initialJudges.length > 0) {
@@ -91,7 +91,7 @@ export default function NationalJuryEventForm() {
         }
     }, [initialJudges]);
 
-    
+
     if (loading) {
         return (
             <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -100,8 +100,8 @@ export default function NationalJuryEventForm() {
         );
     }
 
-    
-    if (error) { 
+
+    if (error) {
         return (
             <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 <Alert variant="destructive" className="my-4">
@@ -117,13 +117,9 @@ export default function NationalJuryEventForm() {
         );
     }
 
-    
+
     return (
         <div className="max-w-4xl mx-auto py-6 sm:py-8 px-2 sm:px-6 lg:px-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 px-2 sm:px-0">
-                Gestión de Jurado Nacional
-            </h1>
-
             <NationalJuryFormInfoAlert
                 isInfoAlertOpen={isInfoAlertOpen}
                 setIsInfoAlertOpen={setIsInfoAlertOpen}
@@ -177,7 +173,7 @@ export default function NationalJuryEventForm() {
                                                             ) : (
                                                                 values.judges.map((judge, index) => (
                                                                     <NationalJudgeRowDesktop
-                                                                        key={`desktop-${judge.userId || index}`} 
+                                                                        key={`desktop-${judge.userId || index}`}
                                                                         judge={judge}
                                                                         index={index}
                                                                         values={values}

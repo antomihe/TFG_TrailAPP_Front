@@ -33,7 +33,7 @@ const OfficialValidationCardRow: React.FC<{
         <div className="block sm:hidden border-b border-border dark:border-neutral-700 p-4 space-y-3 bg-card hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors">
             <div className="flex justify-between items-start">
                 <H3 className="text-base font-semibold text-foreground leading-tight">
-                    {official.name}
+                    {official.fullName}
                 </H3>
                 {isSubmitting ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary flex-shrink-0" />
@@ -63,7 +63,7 @@ const OfficialValidationCardRow: React.FC<{
                         size="sm"
                         className="flex-1 border-green-500 text-green-600 hover:bg-green-500/10 hover:text-green-700 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-400/10 dark:hover:text-green-300"
                         disabled={isSubmitting}
-                        aria-label={`Validar juez ${official.name}`}
+                        aria-label={`Validar juez ${official.fullName}`}
                     >
                         <CheckCircle2 className="mr-1.5 h-4 w-4" /> Validar
                     </Button>
@@ -73,7 +73,7 @@ const OfficialValidationCardRow: React.FC<{
                         size="sm"
                         className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
                         disabled={isSubmitting}
-                        aria-label={`Rechazar juez ${official.name}`}
+                        aria-label={`Rechazar juez ${official.fullName}`}
                     >
                         <XCircle className="mr-1.5 h-4 w-4" /> Rechazar
                     </Button>
