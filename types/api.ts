@@ -376,7 +376,7 @@ export interface CreateEventDto {
    * Event distances
    * @example [5, 10, 15]
    */
-  distances: string[];
+  distances: number[];
 }
 
 export interface EventPaginatedResponseDto {

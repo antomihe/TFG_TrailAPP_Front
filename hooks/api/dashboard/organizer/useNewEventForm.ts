@@ -80,7 +80,7 @@ export const useNewEventForm = () => {
             date: formattedDate, 
             province: values.province,
             location: values.location,
-            distances: values.distances.map(d => String(d)), 
+            distances: values.distances, 
         };
 
         formikActions.setSubmitting(true);
