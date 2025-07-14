@@ -9,8 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { dateFormatter } from '@/lib/utils';
 import { toast } from 'sonner';
-import { EventEnrollment as Event } from '@/types';
 import { useEnrollEvents } from '@/hooks/api/dashboard/athlete/useEnrollEvents';
+import { EventWithEnrollmentDto as Event } from '@/types/api';
 
 interface EventCardProps {
   event: Event;
@@ -54,12 +54,12 @@ export default function EventCard({ event, updateEvent }: EventCardProps) {
                 setIsSubmitting(false);
                 return;
               }
-              const enrolledEventData = await enrollInEvent(event.id, +values.distance);
+              await enrollInEvent(event.id, +values.distance);
               toast.success('Inscripción realizada correctamente');
               updateEvent({ 
                 ...event, 
                 enrolled: true, 
-                enrolledDistance: enrolledEventData.enrolledDistance || +values.distance 
+                enrolledDistance: +values.distance 
               });
             }
           } catch (error) {
